@@ -35,12 +35,58 @@ function tx(callable $f) {
     try { $r = $f(); $db->commit(); return $r; }
     catch (Throwable $e) { $db->rollBack(); if ($e instanceof RuntimeException) fail($e->getMessage()); throw $e; }
 }
+
+function geoJson(string $url, array $payload = null): array {
+    $options = [
+        'http' => [
+            'method' => $payload === null ? 'GET' : 'POST',
+            'header' => "Accept: application/json\r\nUser-Agent: TechnoStore/1.0\r\n" . ($payload === null ? '' : "Content-Type: application/json\r\n"),
+            'content' => $payload === null ? '' : json_encode($payload, JSON_UNESCAPED_UNICODE),
+            'timeout' => 12,
+            'ignore_errors' => true,
+        ],
+    ];
+    $json = @file_get_contents($url, false, stream_context_create($options));
+    $data = $json === false ? null : json_decode($json, true);
+    return is_array($data) ? $data : [];
+}
+
+function countryNames(): array {
+    $data = geoJson('https://restcountries.com/v3.1/all?fields=name');
+    $countries = [];
+    foreach ($data as $country) {
+        $name = $country['name']['common'] ?? '';
+        if ($name !== '') $countries[] = $name;
+    }
+    sort($countries, SORT_NATURAL | SORT_FLAG_CASE);
+    return array_values(array_unique($countries));
+}
 // Precio histórico: guarda en cada línea de pedido el precio con el que se compró.
 // Se aplica sola una vez por sesión; es idempotente (no hace falta ningún script).
 function migrar(): void {
     global $db;
     if (!empty($_SESSION['mig_ok'])) return;
     try {
+        $addUsuarioColumn = [
+            'pais' => 'ALTER TABLE usuario ADD COLUMN pais VARCHAR(100) NULL AFTER telefono',
+            'ciudad' => 'ALTER TABLE usuario ADD COLUMN ciudad VARCHAR(100) NULL AFTER pais',
+            'barrio' => 'ALTER TABLE usuario ADD COLUMN barrio VARCHAR(100) NULL AFTER ciudad',
+        ];
+        foreach ($addUsuarioColumn as $column => $sql) {
+            if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuario' AND COLUMN_NAME = ?", [$column])) {
+                try { $db->exec($sql); } catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }
+            }
+        }
+        $addPedidoColumn = [
+            'pais_envio' => 'ALTER TABLE pedido ADD COLUMN pais_envio VARCHAR(100) NULL AFTER direccion_envio',
+            'ciudad_envio' => 'ALTER TABLE pedido ADD COLUMN ciudad_envio VARCHAR(100) NULL AFTER pais_envio',
+            'barrio_envio' => 'ALTER TABLE pedido ADD COLUMN barrio_envio VARCHAR(100) NULL AFTER ciudad_envio',
+        ];
+        foreach ($addPedidoColumn as $column => $sql) {
+            if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pedido' AND COLUMN_NAME = ?", [$column])) {
+                try { $db->exec($sql); } catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }
+            }
+        }
         if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'detalle_pedido' AND COLUMN_NAME = 'precio_unitario'")) {
             try { $db->exec('ALTER TABLE detalle_pedido ADD COLUMN precio_unitario DECIMAL(12,2) NULL AFTER cantidad'); }
             catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }   // 1060 = otra petición ya la creó
@@ -58,11 +104,15 @@ function migrar(): void {
 function datosPerfil(): array {
     global $v;
     $n = $v('nombre'); $ap = $v('apellido'); $t = $v('telefono'); $d = $v('direccion');
+    $pais = $v('pais'); $ciudad = $v('ciudad'); $barrio = $v('barrio');
     if ($n === '' || $ap === '') fail('Nombre y apellido son obligatorios');
     if (mb_strlen($n) > 80 || mb_strlen($ap) > 80) fail('Nombre y apellido admiten máximo 80 caracteres');
     if (mb_strlen($t) > 20) fail('El teléfono admite máximo 20 caracteres');
     if (mb_strlen($d) > 255) fail('La dirección admite máximo 255 caracteres');
-    return [$n, $ap, $t ?: null, $d ?: null];
+    foreach (['País' => $pais, 'Ciudad' => $ciudad, 'Barrio' => $barrio] as $etiqueta => $valor) {
+        if (mb_strlen($valor) > 100) fail("$etiqueta admite máximo 100 caracteres");
+    }
+    return [$n, $ap, $t ?: null, $pais ?: null, $ciudad ?: null, $barrio ?: null, $d ?: null];
 }
 
 function cartId(int $uid) {
@@ -98,6 +148,23 @@ try {
         case 'obtener_destacados':    out(['data' => q('SELECT * FROM v_productos_destacados')]);
         case 'buscar_productos':      out(['data' => q('CALL sp_buscar_productos(?)', [$v('q')])]);
         case 'listar_categorias':     out(['data' => q('CALL sp_listar_categorias()')]);
+        case 'obtener_paises':
+            out(['data' => countryNames()]);
+        case 'obtener_ciudades':
+            $pais = $v('pais');
+            if ($pais === '') fail('Selecciona un país');
+            $query = $v('q');
+            if ($query === '') out(['data' => []]);
+            $search = rawurlencode($query . ', ' . $pais);
+            $data = geoJson("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=12&addressdetails=1&featuretype=city&q=$search");
+            $cities = [];
+            foreach ($data as $place) {
+                $address = $place['address'] ?? [];
+                $city = $address['city'] ?? $address['town'] ?? $address['municipality'] ?? $address['village'] ?? '';
+                if ($city !== '' && stripos($place['display_name'] ?? '', $pais) !== false) $cities[] = $city;
+            }
+            sort($cities, SORT_NATURAL | SORT_FLAG_CASE);
+            out(['data' => $cities]);
 
         /* ---------- Sesión ---------- */
         case 'sesion':  $u = me(); $u ? out(['user' => $u]) : fail('Sin sesión', 401);
@@ -121,11 +188,14 @@ try {
             if ($v('nombre') === '' || $v('apellido') === '' || $v('correo') === '') fail('Completa nombre, apellido y correo');
             if (!filter_var($v('correo'), FILTER_VALIDATE_EMAIL)) fail('Correo no válido');
             if (mb_strlen($v('telefono')) > 20 || mb_strlen($v('direccion')) > 255) fail('Teléfono o dirección demasiado largos');
+            foreach ([$v('pais'), $v('ciudad'), $v('barrio')] as $parte) if (mb_strlen($parte) > 100) fail('País, ciudad o barrio demasiado largos');
             if (strlen($v('password')) < 6) fail('La contraseña debe tener al menos 6 caracteres');
             $id = q('CALL sp_registrar_usuario(?,?,?,?,?,?)', [
                 $v('nombre'), $v('apellido'), $v('correo'),
                 password_hash($v('password'), PASSWORD_DEFAULT), $v('telefono') ?: null, $v('direccion') ?: null
             ])[0]['id_usuario'];
+            q('UPDATE usuario SET pais = ?, ciudad = ?, barrio = ? WHERE id_usuario = ?',
+              [$v('pais') ?: null, $v('ciudad') ?: null, $v('barrio') ?: null, $id]);
             session_regenerate_id(true);
             // El rol siempre es CLIENTE (lo fija el procedimiento, nunca el formulario)
             $_SESSION['user'] = ['id_usuario' => $id, 'nombre' => $v('nombre'), 'apellido' => $v('apellido'), 'correo' => $v('correo'), 'rol' => 'CLIENTE'];
@@ -138,7 +208,8 @@ try {
             out(['message' => 'Producto añadido al carrito']);
         case 'pedidos_usuario':
             $u = needLogin();
-            out(['data' => q("SELECT pe.id_pedido, pe.estado, pe.fecha_creacion, pe.fecha_compra, pe.metodo_pago, pe.direccion_envio,
+            out(['data' => q("SELECT pe.id_pedido, pe.estado, pe.fecha_creacion, pe.fecha_compra, pe.metodo_pago,
+                              pe.pais_envio, pe.ciudad_envio, pe.barrio_envio, pe.direccion_envio,
                               (SELECT COALESCE(SUM(d.cantidad * COALESCE(d.precio_unitario, pr.precio)), 0)
                                  FROM detalle_pedido d JOIN producto pr ON pr.id_producto = d.id_producto
                                 WHERE d.id_pedido = pe.id_pedido) AS total
@@ -164,8 +235,9 @@ try {
                         JOIN producto p ON p.id_producto = d.id_producto
                         JOIN categoria c ON c.id_categoria = p.id_categoria
                         WHERE pe.id_usuario = ? AND pe.estado = 'CARRITO' ORDER BY d.id_detalle", [$u['id_usuario']]);
-            $dir = q('SELECT direccion FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0]['direccion'] ?? '';
-            out(['data' => $items, 'direccion' => $dir]);
+            $address = q('SELECT direccion, pais, ciudad, barrio FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0] ?? [];
+            out(['data' => $items, 'direccion' => $address['direccion'] ?? '', 'pais' => $address['pais'] ?? '',
+                 'ciudad' => $address['ciudad'] ?? '', 'barrio' => $address['barrio'] ?? '']);
         case 'actualizar_carrito':   // cantidad <= 0 quita el producto
             $u = needLogin(); $pid = (int)$v('id_producto'); $n = (int)$v('cantidad');
             $cid = cartId($u['id_usuario']);
@@ -183,10 +255,13 @@ try {
         case 'confirmar_pedido':
             $u = needLogin(); $cid = cartId($u['id_usuario']);
             $dir = $v('direccion_envio'); $mp = $v('metodo_pago');
+            $pais = $v('pais_envio'); $ciudad = $v('ciudad_envio'); $barrio = $v('barrio_envio');
             if (!$cid) fail('Tu carrito está vacío');
             if (mb_strlen($dir) < 6) fail('Escribe una dirección de envío válida');
+            if ($pais === '' || $ciudad === '' || $barrio === '') fail('Completa país, ciudad y barrio');
+            foreach ([$pais, $ciudad, $barrio] as $parte) if (mb_strlen($parte) > 100) fail('País, ciudad o barrio demasiado largos');
             if (!in_array($mp, ['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega'], true)) fail('Elige un método de pago');
-            tx(function () use ($cid, $dir, $mp) {
+            tx(function () use ($cid, $dir, $pais, $ciudad, $barrio, $mp) {
                 $items = q('SELECT d.id_producto, d.cantidad, p.nombre, p.stock FROM detalle_pedido d
                             JOIN producto p ON p.id_producto = d.id_producto WHERE d.id_pedido = ? FOR UPDATE', [$cid]);
                 if (!$items) throw new RuntimeException('Tu carrito está vacío');
@@ -195,7 +270,7 @@ try {
                 foreach ($items as $i) q('UPDATE producto SET stock = stock - ? WHERE id_producto = ?', [$i['cantidad'], $i['id_producto']]);
                 // Congela el precio de compra de cada línea
                 q('UPDATE detalle_pedido d JOIN producto p ON p.id_producto = d.id_producto SET d.precio_unitario = p.precio WHERE d.id_pedido = ?', [$cid]);
-                q("UPDATE pedido SET estado = 'PENDIENTE', fecha_compra = NOW(), metodo_pago = ?, direccion_envio = ? WHERE id_pedido = ?", [$mp, $dir, $cid]);
+                q("UPDATE pedido SET estado = 'PENDIENTE', fecha_compra = NOW(), metodo_pago = ?, direccion_envio = ?, pais_envio = ?, ciudad_envio = ?, barrio_envio = ? WHERE id_pedido = ?", [$mp, $dir, $pais, $ciudad, $barrio, $cid]);
             });
             notificarPedido((int)$cid);   // correo: pedido recibido
             out(['id_pedido' => $cid]);
@@ -241,7 +316,8 @@ try {
         /* ----- Pedidos (administrador) ----- */
         case 'admin_pedidos':
             needAdmin();
-            out(['data' => q("SELECT pe.id_pedido, pe.estado, pe.fecha_creacion, pe.fecha_compra, pe.metodo_pago, pe.direccion_envio,
+            out(['data' => q("SELECT pe.id_pedido, pe.estado, pe.fecha_creacion, pe.fecha_compra, pe.metodo_pago,
+                              pe.pais_envio, pe.ciudad_envio, pe.barrio_envio, pe.direccion_envio,
                                      u.nombre, u.apellido, u.correo, u.telefono,
                                      (SELECT COALESCE(SUM(d.cantidad * COALESCE(d.precio_unitario, pr.precio)), 0)
                                         FROM detalle_pedido d JOIN producto pr ON pr.id_producto = d.id_producto
@@ -287,7 +363,7 @@ try {
 
         case 'listar_usuarios':
             needAdmin();
-            out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, direccion, rol FROM usuario WHERE activo = TRUE ORDER BY fecha_registro DESC, id_usuario DESC')]);
+            out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, pais, ciudad, barrio, direccion, rol FROM usuario WHERE activo = TRUE ORDER BY fecha_registro DESC, id_usuario DESC')]);
         case 'cambiar_rol':
             $u = needAdmin();
             if ((int)$v('id_usuario') === (int)$u['id_usuario']) fail('No puedes cambiar tu propio rol');
@@ -301,12 +377,12 @@ try {
         case 'admin_actualizar_usuario':
             $adm = needAdmin();
             $uid = (int)$v('id_usuario');
-            [$n, $ap, $t, $d] = datosPerfil();
+            [$n, $ap, $t, $pais, $ciudad, $barrio, $d] = datosPerfil();
             if (!filter_var($v('correo'), FILTER_VALIDATE_EMAIL) || mb_strlen($v('correo')) > 120) fail('Correo no válido');
             $pw = $v('password');
             if ($pw !== '' && strlen($pw) < 6) fail('La contraseña debe tener al menos 6 caracteres');
             if (!q('SELECT 1 FROM usuario WHERE id_usuario = ? AND activo = TRUE', [$uid])) fail('Usuario no encontrado', 404);
-            q('UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, telefono = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $v('correo'), $t, $d, $uid]);
+            q('UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $v('correo'), $t, $pais, $ciudad, $barrio, $d, $uid]);
             if ($pw !== '') q('UPDATE usuario SET contrasena_hash = ? WHERE id_usuario = ?', [password_hash($pw, PASSWORD_DEFAULT), $uid]);
             if ($uid === (int)$adm['id_usuario']) { $_SESSION['user']['nombre'] = $n; $_SESSION['user']['apellido'] = $ap; $_SESSION['user']['correo'] = $v('correo'); }
             out();
@@ -314,11 +390,11 @@ try {
         /* ---------- Mi perfil (cliente o administrador sobre su propia cuenta) ---------- */
         case 'perfil_obtener':
             $u = needLogin();
-            out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, direccion, rol FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0] ?? null]);
+            out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, pais, ciudad, barrio, direccion, rol FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0] ?? null]);
         case 'perfil_actualizar':
             $u = needLogin();
-            [$n, $ap, $t, $d] = datosPerfil();
-            q('UPDATE usuario SET nombre = ?, apellido = ?, telefono = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $t, $d, $u['id_usuario']]);
+            [$n, $ap, $t, $pais, $ciudad, $barrio, $d] = datosPerfil();
+            q('UPDATE usuario SET nombre = ?, apellido = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $t, $pais, $ciudad, $barrio, $d, $u['id_usuario']]);
             $_SESSION['user']['nombre'] = $n; $_SESSION['user']['apellido'] = $ap;
             out(['user' => $_SESSION['user']]);
         case 'cambiar_password':

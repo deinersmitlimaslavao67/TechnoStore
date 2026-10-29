@@ -64,6 +64,9 @@ tbody tr:hover{background:#fafcfe}
 .fg input,.fg select,.fg textarea{width:100%;padding:.55rem .7rem;border:1px solid #cdd5de;border-radius:6px}
 .fg textarea{min-height:70px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.autocomplete{position:relative}.autocomplete-list{position:absolute;left:0;right:0;top:100%;z-index:300;max-height:210px;overflow-y:auto;background:#fff;border:1px solid #cdd5de;border-radius:0 0 6px 6px;box-shadow:0 8px 18px rgba(15,25,35,.12)}
+.autocomplete-list button{display:block;width:100%;border:0;background:#fff;text-align:left;padding:.55rem .7rem;color:var(--tx);cursor:pointer}
+.autocomplete-list button:hover,.autocomplete-list button.active{background:#eef4fa;color:var(--brand)}
 .fg.chk label{display:flex;gap:.5rem;align-items:center}.fg.chk input{width:auto}
 .mf{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.2rem}
 #toasts{position:fixed;right:1rem;bottom:1rem;display:grid;gap:.5rem;z-index:200}
@@ -212,7 +215,14 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
           <div class="fg"><label for="mpApe">Apellido</label><input id="mpApe" maxlength="80" autocomplete="family-name" required></div>
         </div>
         <div class="fg"><label for="mpTel">Teléfono</label><input id="mpTel" maxlength="20" autocomplete="tel"></div>
-        <div class="fg"><label for="mpDir">Dirección de envío</label><input id="mpDir" maxlength="255" autocomplete="street-address"></div>
+        <div class="row2">
+          <div class="fg"><label for="mpPais">País</label><input id="mpPais" maxlength="100" autocomplete="country-name"></div>
+          <div class="fg"><label for="mpCiudad">Ciudad</label><input id="mpCiudad" maxlength="100" autocomplete="address-level2"></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label for="mpBarrio">Barrio</label><input id="mpBarrio" maxlength="100" autocomplete="address-level3"></div>
+          <div class="fg"><label for="mpDir">Dirección</label><input id="mpDir" maxlength="255" autocomplete="street-address"></div>
+        </div>
         <div class="mf"><button class="btn ok">Guardar datos</button></div>
       </form>
       <form class="tw tform" id="fPass">
@@ -328,6 +338,11 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
       <div class="fg"><label for="rTel">Teléfono (opcional)</label><input id="rTel" maxlength="20" autocomplete="tel"></div>
       <div class="fg"><label for="rDir">Dirección (opcional)</label><input id="rDir" maxlength="255" autocomplete="street-address"></div>
     </div>
+    <div class="row2">
+      <div class="fg"><label for="rPais">País</label><input id="rPais" maxlength="100" autocomplete="country-name"></div>
+      <div class="fg"><label for="rCiudad">Ciudad</label><input id="rCiudad" maxlength="100" autocomplete="address-level2"></div>
+    </div>
+    <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
     <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
   </form>
 </div></div>
@@ -381,7 +396,14 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
     <div class="fg"><label for="uTel">Teléfono</label><input id="uTel" maxlength="20"></div>
     <div class="fg"><label for="uPass">Nueva contraseña (opcional)</label><input type="password" id="uPass" minlength="6" autocomplete="new-password" placeholder="Dejar vacío para no cambiarla"></div>
   </div>
-  <div class="fg"><label for="uDir">Dirección</label><input id="uDir" maxlength="255"></div>
+  <div class="row2">
+    <div class="fg"><label for="uPais">País</label><input id="uPais" maxlength="100"></div>
+    <div class="fg"><label for="uCiudad">Ciudad</label><input id="uCiudad" maxlength="100"></div>
+  </div>
+  <div class="row2">
+    <div class="fg"><label for="uBarrio">Barrio</label><input id="uBarrio" maxlength="100"></div>
+    <div class="fg"><label for="uDir">Dirección</label><input id="uDir" maxlength="255"></div>
+  </div>
   <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Guardar usuario</button></div>
 </form></div>
 
@@ -458,6 +480,104 @@ async function api(action, params = {}, post = false) {
     return { success: false, error: 'No se pudo conectar con el servidor.' };
   }
 }
+let countryOptions = null;
+const cityOptionsCache = new Map();
+
+async function loadCountries() {
+  if (countryOptions) return countryOptions;
+  const codes = 'AF AL DZ AD AO AG AR AM AU AT AZ BS BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CG CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW';
+  const displayNames = new Intl.DisplayNames(['es'], { type: 'region' });
+  countryOptions = codes.split(' ').map(code => {
+    try { return displayNames.of(code); } catch (e) { return code; }
+  }).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
+  return countryOptions;
+}
+
+async function loadCities(country, query = '') {
+  if (!country || !query.trim()) return [];
+  const key = country + '\0' + query.trim().toLowerCase();
+  if (cityOptionsCache.has(key)) return cityOptionsCache.get(key);
+  const r = await api('obtener_ciudades', { pais: country, q: query.trim() });
+  const cities = r.success ? r.data : [];
+  cityOptionsCache.set(key, cities);
+  return cities;
+}
+
+function bindAddressAutocomplete(input, getOptions, countryInput = null, clearOnCountryChange = false) {
+  if (!input || input.dataset.autocompleteBound) return;
+  input.dataset.autocompleteBound = '1';
+  input.parentElement.classList.add('autocomplete');
+  const list = document.createElement('div');
+  list.className = 'autocomplete-list';
+  list.hidden = true;
+  input.parentElement.appendChild(list);
+  let active = -1;
+  let options = [];
+  let lastCountry = countryInput ? countryInput.value : '';
+
+  const closeList = () => { list.hidden = true; active = -1; };
+  const show = values => {
+    options = values.slice(0, 12);
+    active = -1;
+    list.innerHTML = options.map(value => `<button type="button">${esc(value)}</button>`).join('');
+    list.hidden = options.length === 0;
+    [...list.children].forEach((button, index) => {
+      button.onmousedown = e => e.preventDefault();
+      button.onclick = () => selectOption(index);
+    });
+  };
+  const selectOption = index => {
+    if (!options[index]) return;
+    input.value = options[index];
+    closeList();
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+  const refreshList = async () => {
+    const query = input.value.trim().toLowerCase();
+    const values = await getOptions();
+    show(values.filter(value => !query || value.toLowerCase().includes(query)));
+  };
+  input.addEventListener('input', refreshList);
+  input.addEventListener('focus', refreshList);
+  input.onkeydown = e => {
+    const buttons = [...list.children];
+    if (!buttons.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      active += e.key === 'ArrowDown' ? 1 : -1;
+      if (active < 0) active = buttons.length - 1;
+      if (active >= buttons.length) active = 0;
+      buttons.forEach((button, index) => button.classList.toggle('active', index === active));
+      buttons[active].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && active >= 0) {
+      e.preventDefault();
+      selectOption(active);
+    } else if (e.key === 'Escape') closeList();
+  };
+  input.onblur = () => setTimeout(closeList, 120);
+
+  if (countryInput && clearOnCountryChange) {
+    countryInput.addEventListener('input', () => {
+      if (lastCountry !== countryInput.value) {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        lastCountry = countryInput.value;
+      }
+    });
+  }
+}
+
+function setupAddressAutocomplete(prefix) {
+  const country = $('#' + prefix + 'Pais');
+  const city = $('#' + prefix + 'Ciudad');
+  if (!country || !city) return;
+  bindAddressAutocomplete(country, loadCountries);
+  bindAddressAutocomplete(city, async () => loadCities(country.value.trim(), city.value.trim()), country, true);
+}
+setupAddressAutocomplete('r');
+setupAddressAutocomplete('mp');
+setupAddressAutocomplete('u');
 const open = id => $('#' + id).classList.add('on');
 const close = id => $('#' + id).classList.remove('on');
 $$('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').classList.remove('on'));
@@ -500,7 +620,7 @@ function openAuth(t = 'login') { authTab(t); open('mAuth'); }
 $$('#authTabs button').forEach(b => b.onclick = () => authTab(b.dataset.a));
 $('#navLogin').onclick = () => openAuth('login');
 $('#navReg').onclick = () => openAuth('reg');
-$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartDir = ''; paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
+$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
 
 function startSession(u) {
   user = u; localStorage.setItem('currentUser', JSON.stringify(u));
@@ -516,7 +636,11 @@ $('#fReg').onsubmit = async e => {
   e.preventDefault();
   if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
   const correo = $('#rEmail').value.trim(), password = $('#rPass').value;
-  const r = await api('registrar', { nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password, telefono: $('#rTel').value.trim(), direccion: $('#rDir').value.trim() }, true);
+  const r = await api('registrar', {
+    nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
+    telefono: $('#rTel').value.trim(), pais: $('#rPais').value.trim(), ciudad: $('#rCiudad').value.trim(),
+    barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim()
+  }, true);
   if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
   $('#fReg').reset();
   toast('Cuenta creada');
@@ -598,7 +722,7 @@ $('#bAll').onclick = () => loadList('obtener_vista_catalogo');
 $('#bFeat').onclick = () => loadList('obtener_destacados');
 
 /* ---------- Carrito ---------- */
-let cart = [], cartDir = '', cartPay = 'Tarjeta crédito';
+let cart = [], cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }, cartPay = 'Tarjeta crédito';
 function paintBadge() {
   const n = cart.reduce((s, i) => s + +i.cantidad, 0), b = $('#cartBadge');
   b.textContent = n; b.hidden = !n;
@@ -607,7 +731,9 @@ async function refreshCart() {
   if (!user) { cart = []; paintBadge(); return; }
   const r = await api('ver_carrito');
   cart = r.success ? r.data : [];
-  if (r.success && !cartDir) cartDir = r.direccion || '';
+  if (r.success && !Object.values(cartAddress).some(Boolean)) {
+    cartAddress = { pais: r.pais || '', ciudad: r.ciudad || '', barrio: r.barrio || '', direccion: r.direccion || '' };
+  }
   paintBadge();
 }
 async function loadCart() { await refreshCart(); paintCart(); }
@@ -631,10 +757,16 @@ function paintCart() {
   <aside class="sum"><h3>Resumen del pedido</h3>
     <div class="line"><span>Productos (${units})</span><span>${money(total)}</span></div>
     <div class="line tot"><span>Total</span><span>${money(total)}</span></div>
-    <div class="fg"><label for="cDir">Dirección de envío</label><input id="cDir" value="${esc(cartDir)}" placeholder="Calle, número, ciudad" oninput="cartDir=this.value"></div>
+    <div class="row2">
+      <div class="fg"><label for="cPais">País</label><input id="cPais" maxlength="100" value="${esc(cartAddress.pais)}" required oninput="cartAddress.pais=this.value"></div>
+      <div class="fg"><label for="cCiudad">Ciudad</label><input id="cCiudad" maxlength="100" value="${esc(cartAddress.ciudad)}" required oninput="cartAddress.ciudad=this.value"></div>
+    </div>
+    <div class="fg"><label for="cBarrio">Barrio</label><input id="cBarrio" maxlength="100" value="${esc(cartAddress.barrio)}" required oninput="cartAddress.barrio=this.value"></div>
+    <div class="fg"><label for="cDir">Dirección</label><input id="cDir" maxlength="255" value="${esc(cartAddress.direccion)}" required oninput="cartAddress.direccion=this.value"></div>
     <div class="fg"><label for="cPay">Método de pago</label><select id="cPay" onchange="cartPay=this.value">${['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega'].map(m => `<option ${m === cartPay ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
     <button class="btn ok full" onclick="checkout()">Confirmar pedido</button>
   </aside></div>`;
+  setupAddressAutocomplete('c');
 }
 async function addCart(id) {
   if (!user) { toast('Inicia sesión para usar el carrito', true); return openAuth(); }
@@ -648,7 +780,11 @@ async function setQty(id, n) {   // n <= 0 quita el producto
   loadCart();
 }
 async function checkout() {
-  const r = await api('confirmar_pedido', { direccion_envio: cartDir.trim(), metodo_pago: cartPay }, true);
+  const r = await api('confirmar_pedido', {
+    pais_envio: cartAddress.pais.trim(), ciudad_envio: cartAddress.ciudad.trim(),
+    barrio_envio: cartAddress.barrio.trim(), direccion_envio: cartAddress.direccion.trim(),
+    metodo_pago: cartPay
+  }, true);
   if (!r.success) return toast(r.error, true);
   toast(`¡Pedido #${r.id_pedido} confirmado!`);
   cart = []; paintBadge(); loadList('listar_catalogo'); show('orders');
@@ -826,8 +962,9 @@ async function adminOrderDetail(id) {
   const r = await api('detalle_pedido', { id_pedido: id });
   if (!r.success) return toast(r.error, true);
   $('#ordTitle').textContent = 'Pedido #' + id;
+  const shippingAddress = [o.direccion_envio, o.barrio_envio, o.ciudad_envio, o.pais_envio].filter(Boolean).join(', ');
   $('#ordInfo').innerHTML = `<div><b>${esc(o.nombre)} ${esc(o.apellido)}</b> · ${esc(o.correo)}${o.telefono ? ' · ' + esc(o.telefono) : ''}</div>
-    <div>Envío a: ${esc(o.direccion_envio || '—')}</div><div>Pago: ${esc(o.metodo_pago || '—')} · Total: <b>${money(o.total)}</b></div>`;
+    <div>Envío a: ${esc(shippingAddress || '—')}</div><div>Pago: ${esc(o.metodo_pago || '—')} · Total: <b>${money(o.total)}</b></div>`;
   $('#ordDet').innerHTML = r.data.map(d => `<tr><td>${esc(d.producto)}<div class="sub">${esc(d.marca)} · ${money(d.precio_unitario)} c/u</div></td><td>${esc(d.cantidad)}</td><td>${money(d.subtotal)}</td></tr>`).join('');
   open('mOrd');
 }
@@ -883,14 +1020,18 @@ async function loadUsers() {
 function editUser(id) {
   const u = adminUsers.find(x => +x.id_usuario === id); if (!u) return;
   $('#uId').value = u.id_usuario; $('#uNom').value = u.nombre || ''; $('#uApe').value = u.apellido || '';
-  $('#uMail').value = u.correo || ''; $('#uTel').value = u.telefono || ''; $('#uDir').value = u.direccion || ''; $('#uPass').value = '';
+  $('#uMail').value = u.correo || ''; $('#uTel').value = u.telefono || '';
+  $('#uPais').value = u.pais || ''; $('#uCiudad').value = u.ciudad || '';
+  $('#uBarrio').value = u.barrio || ''; $('#uDir').value = u.direccion || ''; $('#uPass').value = '';
   open('mUsr');
 }
 $('#fUsr').onsubmit = async e => {
   e.preventDefault();
   const id = $('#uId').value;
   const r = await api('admin_actualizar_usuario', { id_usuario: id, nombre: $('#uNom').value.trim(), apellido: $('#uApe').value.trim(),
-    correo: $('#uMail').value.trim(), telefono: $('#uTel').value.trim(), direccion: $('#uDir').value.trim(), password: $('#uPass').value }, true);
+    correo: $('#uMail').value.trim(), telefono: $('#uTel').value.trim(), pais: $('#uPais').value.trim(),
+    ciudad: $('#uCiudad').value.trim(), barrio: $('#uBarrio').value.trim(), direccion: $('#uDir').value.trim(),
+    password: $('#uPass').value }, true);
   if (!r.success) return toast(r.error || 'No se pudo guardar', true);
   if (user && +id === +user.id_usuario) { user.nombre = $('#uNom').value.trim(); user.apellido = $('#uApe').value.trim(); localStorage.setItem('currentUser', JSON.stringify(user)); }
   close('mUsr'); toast('Usuario actualizado'); loadUsers();
@@ -920,15 +1061,20 @@ async function loadProfile() {
   if (!(r.success && r.data)) return toast(r.error || 'No se pudo cargar tu perfil', true);
   const d = r.data;
   $('#mpMail').value = d.correo || ''; $('#mpNom').value = d.nombre || ''; $('#mpApe').value = d.apellido || '';
-  $('#mpTel').value = d.telefono || ''; $('#mpDir').value = d.direccion || '';
+  $('#mpTel').value = d.telefono || ''; $('#mpPais').value = d.pais || '';
+  $('#mpCiudad').value = d.ciudad || ''; $('#mpBarrio').value = d.barrio || ''; $('#mpDir').value = d.direccion || '';
   $('#mpAct').value = $('#mpNew').value = $('#mpNew2').value = '';
 }
 $('#fPerfil').onsubmit = async e => {
   e.preventDefault();
-  const r = await api('perfil_actualizar', { nombre: $('#mpNom').value.trim(), apellido: $('#mpApe').value.trim(), telefono: $('#mpTel').value.trim(), direccion: $('#mpDir').value.trim() }, true);
+  const r = await api('perfil_actualizar', {
+    nombre: $('#mpNom').value.trim(), apellido: $('#mpApe').value.trim(), telefono: $('#mpTel').value.trim(),
+    pais: $('#mpPais').value.trim(), ciudad: $('#mpCiudad').value.trim(), barrio: $('#mpBarrio').value.trim(),
+    direccion: $('#mpDir').value.trim()
+  }, true);
   if (!r.success) return toast(r.error || 'No se pudo guardar', true);
   user = r.user; localStorage.setItem('currentUser', JSON.stringify(user));
-  cartDir = $('#mpDir').value.trim();
+  cartAddress = { pais: $('#mpPais').value.trim(), ciudad: $('#mpCiudad').value.trim(), barrio: $('#mpBarrio').value.trim(), direccion: $('#mpDir').value.trim() };
   toast('Perfil actualizado');
 };
 $('#fPass').onsubmit = async e => {

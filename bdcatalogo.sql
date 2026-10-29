@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS usuario (
   correo          VARCHAR(120) NOT NULL UNIQUE,
   contrasena_hash VARCHAR(255) NOT NULL,
   telefono        VARCHAR(20)  NULL,
+  pais            VARCHAR(100) NULL,
+  ciudad          VARCHAR(100) NULL,
+  barrio          VARCHAR(100) NULL,
   direccion       VARCHAR(255) NULL,
   rol             ENUM('ADMINISTRADOR','CLIENTE') NOT NULL DEFAULT 'CLIENTE',
   fecha_registro  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -63,6 +66,9 @@ CREATE TABLE IF NOT EXISTS pedido (
   fecha_compra    DATETIME     NULL,
   metodo_pago     VARCHAR(40)  NULL,
   direccion_envio VARCHAR(255) NULL,
+  pais_envio      VARCHAR(100) NULL,
+  ciudad_envio    VARCHAR(100) NULL,
+  barrio_envio    VARCHAR(100) NULL,
   CONSTRAINT fk_pedido_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
     ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -116,6 +122,7 @@ INSERT INTO usuario (nombre, apellido, correo, contrasena_hash, telefono, direcc
 ('Sofía',  'Martínez', 'sofia@correo.com',   '$2y$10$hashEjemploCliente04000000000000000000000000000000000', '3045556677', 'Calle 50 #20-10, Medellín', 'CLIENTE');
 
 
+
 INSERT INTO categoria (nombre, descripcion, activa) VALUES
 ('Celulares',   'Teléfonos inteligentes y accesorios',      TRUE),
 ('Computadores','Portátiles, de escritorio y componentes',   TRUE),
@@ -126,19 +133,19 @@ INSERT INTO categoria (nombre, descripcion, activa) VALUES
 
 INSERT INTO producto
   (id_categoria, nombre, marca, descripcion, especificaciones, precio, stock, imagen_url, destacado, activo) VALUES
-(1, 'Smartphone Galaxy A55',     'Samsung', 'Teléfono gama media con gran pantalla',      'Pantalla 6.6" AMOLED, 8GB RAM, 256GB, cámara 50MP',  1599000.00, 25, 'img/galaxy-a55.jpg',   TRUE,  TRUE),
-(1, 'iPhone 14 128GB',           'Apple',   'Smartphone con chip A15 Bionic',             'Pantalla 6.1" OLED, 128GB, cámara dual 12MP',        3299000.00, 10, 'img/iphone14.jpg',     TRUE,  TRUE),
-(1, 'Redmi Note 13',             'Xiaomi',  'Equilibrio entre precio y rendimiento',      'Pantalla 6.67" AMOLED, 6GB RAM, 128GB',               899000.00, 40, 'img/redmi-note13.jpg', FALSE, TRUE),
-(2, 'Portátil IdeaPad 3',        'Lenovo',  'Portátil para estudio y oficina',            'Ryzen 5, 8GB RAM, SSD 512GB, 15.6" FHD',             2199000.00, 15, 'img/ideapad3.jpg',     TRUE,  TRUE),
-(2, 'MacBook Air M2',            'Apple',   'Ultraportátil ligera y potente',             'Chip M2, 8GB RAM, SSD 256GB, 13.6" Retina',          5199000.00,  6, 'img/macbook-air.jpg',  TRUE,  TRUE),
-(2, 'Monitor 24" Full HD',       'LG',      'Monitor IPS para oficina y hogar',           '24" IPS, 1920x1080, 75Hz, HDMI',                      599000.00, 30, 'img/monitor-lg24.jpg', FALSE, TRUE),
-(3, 'Audífonos WH-CH520',        'Sony',    'Audífonos Bluetooth con micrófono',          'Bluetooth 5.2, 50h de batería',                       229000.00, 50, 'img/sony-ch520.jpg',   FALSE, TRUE),
-(3, 'Parlante Flip 6',           'JBL',     'Parlante portátil resistente al agua',       'IP67, 12h de batería, Bluetooth',                     469000.00, 20, 'img/jbl-flip6.jpg',    TRUE,  TRUE),
-(4, 'Freidora de aire 4L',       'Oster',   'Cocina con poco aceite',                     '4L, 1500W, temporizador 60 min',                      289000.00,  3, 'img/freidora.jpg',     FALSE, TRUE),
-(4, 'Aspiradora robot',          'Xiaomi',  'Limpieza automática con programación',       'Succión 4000Pa, app móvil, 2h de autonomía',          899000.00,  8, 'img/aspiradora.jpg',   FALSE, TRUE),
-(5, 'Consola PlayStation 5',     'Sony',    'Consola de videojuegos de nueva generación', 'SSD 825GB, 4K, control DualSense',                   2799000.00,  5, 'img/ps5.jpg',          TRUE,  TRUE),
-(5, 'Control Xbox inalámbrico',  'Microsoft','Control compatible con PC y Xbox',          'Bluetooth, 40h de batería',                           249000.00, 35, 'img/control-xbox.jpg', FALSE, TRUE),
-(2, 'Teclado mecánico K552',     'Redragon','Teclado mecánico compacto',                  'Switch rojo, retroiluminado, formato TKL',            159000.00,  0, 'img/k552.jpg',         FALSE, FALSE);
+(1, 'Smartphone Galaxy A55',     'Samsung', 'Teléfono gama media con gran pantalla',      'Pantalla 6.6" AMOLED, 8GB RAM, 256GB, cámara 50MP',  1599000.00, 25, 'https://exitocol.vteximg.com.br/arquivos/ids/34507068/Celular-SAMSUNG-A55-5G-256-GB-8-GB-RAM-Azul-Hielo-3526200_a.jpg?v=639215576761370000',   TRUE,  TRUE),
+(1, 'iPhone 14 128GB',           'Apple',   'Smartphone con chip A15 Bionic',             'Pantalla 6.1" OLED, 128GB, cámara dual 12MP',        3299000.00, 10, 'https://exitocol.vtexassets.com/arquivos/ids/34061868/iphone-14-reacondicionado-5g-128-gb-medianoche.jpg?v=639196498825870000',     TRUE,  TRUE),
+(1, 'Redmi Note 13',             'Xiaomi',  'Equilibrio entre precio y rendimiento',      'Pantalla 6.67" AMOLED, 6GB RAM, 128GB',               899000.00, 40, 'https://i02.appmifile.com/mi-com-product/fly-birds/redmi-note-13/PC/bac9e4d29124ae838486e7f567d14361.jpg', FALSE, TRUE),
+(2, 'Portátil IdeaPad 3',        'Lenovo',  'Portátil para estudio y oficina',            'Ryzen 5, 8GB RAM, SSD 512GB, 15.6" FHD',             2199000.00, 15, 'https://i5.walmartimages.com.mx/mg/gm/3pp/asr/6b4634cf-ab91-4c75-bdce-1551c5019f93.e8cda182e2ed4e20283a3d92c5fca2fc.jpeg?odnHeight=2000&odnWidth=2000&odnBg=ffffff', TRUE, TRUE),
+(2, 'MacBook Air M2',            'Apple',   'Ultraportátil ligera y potente',             'Chip M2, 8GB RAM, SSD 256GB, 13.6" Retina',          5199000.00,  6, 'https://upload.wikimedia.org/wikipedia/commons/9/9f/M2_Macbook_Air_Starlight_model.jpg', TRUE, TRUE),
+(2, 'Monitor 24" Full HD',       'LG',      'Monitor IPS para oficina y hogar',           '24" IPS, 1920x1080, 75Hz, HDMI',                      599000.00, 30, 'https://www.lg.com/ae/images/consumer-monitors/md07587749/gallery/medium01.jpg', FALSE, TRUE),
+(3, 'Audífonos WH-CH520',        'Sony',    'Audífonos Bluetooth con micrófono',          'Bluetooth 5.2, 50h de batería',                       229000.00, 50, 'https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6533/6533161cv12d.jpg', FALSE, TRUE),
+(3, 'Parlante Flip 6',           'JBL',     'Parlante portátil resistente al agua',       'IP67, 12h de batería, Bluetooth',                     469000.00, 20, 'https://cellularstockpile.com/wp-content/uploads/2024/01/jbl-flip-6-waterproof-portable-bluetooth-speaker.jpg', TRUE, TRUE),
+(4, 'Freidora de aire 4L',       'Oster',   'Cocina con poco aceite',                     '4L, 1500W, temporizador 60 min',                      289000.00,  3, 'https://buydominion.com/wp-content/uploads/2021/07/Freidora-de-Aire-Digital-4-L-CKSTAF40D-2-930x930.jpg', FALSE, TRUE),
+(4, 'Aspiradora robot',          'Xiaomi',  'Limpieza automática con programación',       'Succión 4000Pa, app móvil, 2h de autonomía',          899000.00,  8, 'https://i02.appmifile.com/mi-com-product/fly-birds/xiaomi-robot-vacuum-s20/pc/8de5475d68e7c37bea0b893f13b79edf.jpg', FALSE, TRUE),
+(5, 'Consola PlayStation 5',     'Sony',    'Consola de videojuegos de nueva generación', 'SSD 825GB, 4K, control DualSense',                   2799000.00,  5, 'https://i5.walmartimages.com/seo/Sony-PlayStation-5-PS5-Digital-Console-Slim_330f0b1b-c9b6-4d17-8875-f35fea51bdfd.587fde46f23ab38eb3197552e46f5305.jpeg', TRUE, TRUE),
+(5, 'Control Xbox inalámbrico',  'Microsoft','Control compatible con PC y Xbox',          'Bluetooth, 40h de batería',                           249000.00, 35, 'https://m.media-amazon.com/images/I/61H321AbQuL._AC_SL1500_.jpg', FALSE, TRUE),
+(2, 'Teclado mecánico K552',     'Redragon','Teclado mecánico compacto',                  'Switch rojo, retroiluminado, formato TKL',            159000.00,  0, 'https://redragonadria.com/wp-content/uploads/2021/03/K552-2-1-1.jpg', FALSE, FALSE);
 
 
 INSERT INTO pedido (id_pedido, id_usuario, estado, fecha_creacion, fecha_compra, metodo_pago, direccion_envio) VALUES
@@ -168,7 +175,7 @@ INSERT INTO personalizacion_tienda
 
   (id_usuario, nombre_tienda, logo_url, color_primario, color_secundario, banner_url,
    descripcion_tienda, correo_contacto, telefono_contacto) VALUES
-(1, 'TecnoShop Huila', 'img/logo.png', '#1F4E79', '#FFF2CC', 'img/banner.jpg',
+(1, 'TecnoShop Huila', 'logo/logo.png', '#1F4E79', '#FFF2CC', 'banner/banner.png',
  'Tu tienda de tecnología con los mejores precios y envíos a todo el país.',
  'contacto@tienda.com', '3001112233');
 

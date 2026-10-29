@@ -24,7 +24,7 @@ function cop($n): string { return '$' . number_format((float)$n, 0, ',', '.'); }
 function notificarPedido(int $idPedido): bool {
     if (!MAIL_ENABLED) return false;
     try {
-        $p = q('SELECT pe.id_pedido, pe.estado, pe.metodo_pago, pe.direccion_envio, u.nombre, u.correo
+        $p = q('SELECT pe.id_pedido, pe.estado, pe.metodo_pago, pe.pais_envio, pe.ciudad_envio, pe.barrio_envio, pe.direccion_envio, u.nombre, u.correo
                   FROM pedido pe JOIN usuario u ON u.id_usuario = pe.id_usuario
                  WHERE pe.id_pedido = ?', [$idPedido])[0] ?? null;
         if (!$p || !isset(MAIL_ESTADOS[$p['estado']]) || !filter_var($p['correo'], FILTER_VALIDATE_EMAIL)) return false;
@@ -42,6 +42,7 @@ function notificarPedido(int $idPedido): bool {
                     . '<td style="padding:6px 0;text-align:right">' . cop($sub) . '</td></tr>';
         }
 
+        $direccion = implode(', ', array_filter([$p['direccion_envio'] ?? '', $p['barrio_envio'] ?? '', $p['ciudad_envio'] ?? '', $p['pais_envio'] ?? '']));
         $html = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">'
               . '<div style="background:' . $color . ';color:#fff;padding:18px 24px"><h2 style="margin:0">' . h($titulo) . '</h2>'
               . '<div style="opacity:.9">Pedido #' . (int)$p['id_pedido'] . '</div></div>'
@@ -50,7 +51,7 @@ function notificarPedido(int $idPedido): bool {
               . '<table style="width:100%;border-collapse:collapse;border-top:1px solid #e5e7eb;margin-top:12px">' . $filas
               . '<tr><td style="padding:10px 0;border-top:1px solid #e5e7eb"><b>Total</b></td>'
               . '<td style="padding:10px 0;border-top:1px solid #e5e7eb;text-align:right"><b>' . cop($total) . '</b></td></tr></table>'
-              . '<p style="font-size:14px;color:#4b5563">Dirección de envío: ' . h((string)$p['direccion_envio']) . '<br>'
+              . '<p style="font-size:14px;color:#4b5563">Dirección de envío: ' . h($direccion ?: '—') . '<br>'
               . 'Método de pago: ' . h((string)$p['metodo_pago']) . '</p></div>'
               . '<div style="background:#f9fafb;padding:12px 24px;font-size:12px;color:#6b7280">' . h($tienda) . '</div></div>';
 
