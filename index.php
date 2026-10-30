@@ -227,7 +227,7 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
       </form>
       <form class="tw tform" id="fPass">
         <h3>Cambiar contraseña</h3>
-        <div class="fg"><label for="mpAct">Contraseña actual</label><input type="password" id="mpAct" autocomplete="current-password" required></div>
+        <div class="fg"><label for="mpAct">Contraseña actuallll</label><input type="password" id="mpAct" autocomplete="current-password" required></div>
         <div class="fg"><label for="mpNew">Nueva contraseña (mín. 6)</label><input type="password" id="mpNew" minlength="6" autocomplete="new-password" required></div>
         <div class="fg"><label for="mpNew2">Repetir nueva contraseña</label><input type="password" id="mpNew2" minlength="6" autocomplete="new-password" required></div>
         <div class="mf"><button class="btn">Cambiar contraseña</button></div>
