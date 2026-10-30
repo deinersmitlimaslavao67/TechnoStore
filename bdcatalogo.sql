@@ -133,7 +133,7 @@ INSERT INTO categoria (nombre, descripcion, activa) VALUES
 
 INSERT INTO producto
   (id_categoria, nombre, marca, descripcion, especificaciones, precio, stock, imagen_url, destacado, activo) VALUES
-(1, 'Smartphone Galaxy A55',     'Samsung', 'Teléfono gama media con gran pantalla',      'Pantalla 6.6" AMOLED, 8GB RAM, 256GB, cámara 50MP',  1599000.00, 25, 'https://exitocol.vteximg.com.br/arquivos/ids/34507068/Celular-SAMSUNG-A55-5G-256-GB-8-GB-RAM-Azul-Hielo-3526200_a.jpg?v=639215576761370000',   TRUE,  FALSE),
+(1, 'Smartphone Galaxy A55',     'Samsung', 'Teléfono gama media con gran pantalla',      'Pantalla 6.6" AMOLED, 8GB RAM, 256GB, cámara 50MP',  1599000.00, 25, 'https://exitocol.vteximg.com.br/arquivos/ids/34507068/Celular-SAMSUNG-A55-5G-256-GB-8-GB-RAM-Azul-Hielo-3526200_a.jpg?v=639215576761370000',   TRUE,  TRUE),
 (1, 'iPhone 14 128GB',           'Apple',   'Smartphone con chip A15 Bionic',             'Pantalla 6.1" OLED, 128GB, cámara dual 12MP',        3299000.00, 10, 'https://exitocol.vtexassets.com/arquivos/ids/34061868/iphone-14-reacondicionado-5g-128-gb-medianoche.jpg?v=639196498825870000',     TRUE,  TRUE),
 (1, 'Redmi Note 13',             'Xiaomi',  'Equilibrio entre precio y rendimiento',      'Pantalla 6.67" AMOLED, 6GB RAM, 128GB',               899000.00, 40, 'https://i02.appmifile.com/mi-com-product/fly-birds/redmi-note-13/PC/bac9e4d29124ae838486e7f567d14361.jpg', FALSE, TRUE),
 (2, 'Portátil IdeaPad 3',        'Lenovo',  'Portátil para estudio y oficina',            'Ryzen 5, 8GB RAM, SSD 512GB, 15.6" FHD',             2199000.00, 15, 'https://i5.walmartimages.com.mx/mg/gm/3pp/asr/6b4634cf-ab91-4c75-bdce-1551c5019f93.e8cda182e2ed4e20283a3d92c5fca2fc.jpeg?odnHeight=2000&odnWidth=2000&odnBg=ffffff', TRUE, TRUE),
