@@ -240,6 +240,7 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
       <button data-t="ped">Pedidos</button>
       <button data-t="usr">Usuarios</button>
       <button data-t="tie">Tienda</button>
+      <button data-t="rep">Reportes</button>
     </div>
 
     <div class="panel on" id="t-prod">
@@ -301,6 +302,18 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
         </div>
         <div class="mf"><button class="btn ok">Guardar cambios</button></div>
       </form>
+    </div>
+
+    <div class="panel" id="t-rep">
+      <p class="sub" style="margin-bottom:1rem">Descarga la información de la tienda en archivos de Excel (.xlsx).</p>
+      <div class="pgrid">
+        <div class="tw tform"><h3>Pedidos entregados</h3><p class="sub" style="margin-bottom:.9rem">Pedidos en estado ENTREGADO, con cliente, fechas, método de pago y total. La segunda hoja trae los productos de cada pedido.</p><div class="mf" style="margin-top:0"><button class="btn ok" data-rep="pedidos_entregados">Descargar Excel</button></div></div>
+        <div class="tw tform"><h3>Pedidos pendientes</h3><p class="sub" style="margin-bottom:.9rem">Pedidos en estado PENDIENTE (el cliente ya confirmó la compra y falta confirmar el pago). Incluye la hoja de productos.</p><div class="mf" style="margin-top:0"><button class="btn ok" data-rep="pedidos_pendientes">Descargar Excel</button></div></div>
+        <div class="tw tform"><h3>Pedidos enviados</h3><p class="sub" style="margin-bottom:.9rem">Pedidos en estado ENVIADO que van en camino al cliente. Incluye la hoja de productos.</p><div class="mf" style="margin-top:0"><button class="btn ok" data-rep="pedidos_enviados">Descargar Excel</button></div></div>
+        <div class="tw tform"><h3>Usuarios con pedidos</h3><p class="sub" style="margin-bottom:.9rem">Usuarios que han hecho al menos un pedido (el carrito no cuenta): cuántos pedidos tienen, cuántos cancelaron y cuánto han comprado.</p><div class="mf" style="margin-top:0"><button class="btn ok" data-rep="usuarios_con_pedidos">Descargar Excel</button></div></div>
+        <div class="tw tform"><h3>Usuarios sin pedidos</h3><p class="sub" style="margin-bottom:.9rem">Clientes activos que nunca han hecho un pedido, con una columna que indica si tienen un carrito abierto.</p><div class="mf" style="margin-top:0"><button class="btn ok" data-rep="usuarios_sin_pedidos">Descargar Excel</button></div></div>
+        <div class="tw tform"><h3>Productos más y menos comprados</h3><p class="sub" style="margin-bottom:.9rem">Dos hojas: los 10 más comprados y los 10 menos comprados (incluye los que nunca se han vendido). Cuentan los pedidos no cancelados.</p><div class="mf" style="margin-top:0"><button class="btn ok" data-rep="productos_mas_menos_comprados">Descargar Excel</button></div></div>
+      </div>
     </div>
   </section>
 </main>
@@ -998,6 +1011,24 @@ $('#delOk').onclick = async () => {
   toast(tipo[0].toUpperCase() + tipo.slice(1) + ' eliminado' + (tipo === 'categoria' ? 'a' : '') + '. Puedes restaurarlo en “Ver eliminados”.');
   if (tipo === 'producto') loadProds(); else if (tipo === 'usuario') loadUsers(); else { await loadCats(); paintCats(); }
 };
+
+/* ---------- ADMIN: Reportes en Excel ---------- */
+$$('[data-rep]').forEach(b => b.onclick = async () => {
+  const txt = b.textContent; b.disabled = true; b.textContent = 'Generando…';
+  try {
+    const res = await fetch('reporte.php?tipo=' + encodeURIComponent(b.dataset.rep));
+    if ((res.headers.get('Content-Type') || '').includes('application/json')) {   // el servidor respondió un error
+      const r = await res.json(); return toast(r.error || 'No se pudo generar el reporte', true);
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const nombre = ((res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/) || [])[1] || 'reporte.xlsx';
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('Reporte descargado');
+  } catch (e) { toast('No se pudo descargar el reporte', true); }
+  finally { b.disabled = false; b.textContent = txt; }
+});
 
 /* ---------- Inicio ---------- */
 async function syncSession() {   // la sesión real vive en el servidor
