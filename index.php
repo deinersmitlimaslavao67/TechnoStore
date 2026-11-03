@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TecnoShop · Catálogo</title>
+<title>TechnoStore · Catálogo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{--brand:#1F4E79;--brand-d:#163a5c;--brand-dd:#102f4a;--brand-l:#2f6fa8;--accent:#eaf1f8;--sand:#FFF2CC;--ok:#1e8e5a;--bad:#c0392b;--bg:#f3f5f8;--card:#fff;--line:#e3e8ee;--tx:#1d2733;--mut:#6b7785}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -147,17 +147,117 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
 .pgrid .tform{max-width:none}
 @media(max-width:640px){.pd{grid-template-columns:1fr}}
 @media(max-width:860px){.hero-in{grid-template-columns:1fr}.hero-art{display:none}.perks-in{grid-template-columns:1fr 1fr}.cartwrap{grid-template-columns:1fr}.sum{position:static}.ci{grid-template-columns:70px 1fr auto}.ci img{width:70px}.ci-s{text-align:left}}
+
+/* ===== TechnoStore · tema oscuro ===== */
+:root{--bg:#0a0e14;--card:#121826;--card2:#1a2234;--line:#243049;--tx:#e6ebf5;--mut:#8b97ad;--acc:#5ab0ff}
+body{background:var(--bg);color:var(--tx)}
+h1,h2,h3,.logo{font-family:Sora,'DM Sans',system-ui,sans-serif;letter-spacing:-.015em}
+:focus-visible{outline-color:var(--acc)}
+header{background:rgba(10,14,20,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.bar{gap:.8rem 1rem}
+.logo img{background:none}
+.hsearch{flex:1;max-width:460px;position:relative}
+.hsearch input{width:100%;padding:.55rem 1rem .55rem 2.4rem;background:var(--card);border:1px solid var(--line);border-radius:99px;color:var(--tx)}
+.hsearch input::placeholder{color:var(--mut)}
+.hsearch svg{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--mut);pointer-events:none}
+nav button.on{background:rgba(90,176,255,.14);color:var(--acc)}
+.cartbtn{display:inline-flex;align-items:center;gap:.45rem;border:1px solid var(--line)!important}
+.badge{background:var(--acc);color:#06111f}
+.hero{background:radial-gradient(900px 420px at 85% -10%,color-mix(in srgb,var(--brand) 60%,transparent),transparent),var(--bg);border-bottom:1px solid var(--line);position:relative}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:48px 48px;opacity:.35;mask-image:linear-gradient(180deg,#000,transparent 85%)}
+.hero-in{position:relative}
+.hero p{color:var(--mut)}
+.eyebrow{background:var(--card2);border:1px solid var(--line);color:var(--acc)}
+.hc{background:var(--card);color:var(--tx);border:1px solid var(--line)}.hc span{color:var(--acc)}
+.perks{background:var(--card);border-color:var(--line)}.perks-in i{background:var(--card2)}.perks-in span{color:var(--mut)}
+.btn{background:var(--acc);color:#06111f}.btn:hover{background:#8cc8ff}
+.btn.ok{background:#22c58b;color:#04140d}.btn.ok:hover{background:#4ddba6}
+.btn.bad{background:#d64545;color:#fff}.btn.bad:hover{background:#e86060}
+.btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--line)}.btn.ghost:hover{background:var(--card2)}
+.btn.gold{background:var(--acc);color:#06111f}.btn.gold:hover{background:#8cc8ff}
+.btn.ghost-w{background:transparent;color:var(--tx);border:1px solid var(--line)}.btn.ghost-w:hover{background:var(--card2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.card,.tw,.sum,.ci,.mc,.empty,.tprev+*{background:var(--card);border-color:var(--line);color:var(--tx)}
+.mc{border:1px solid var(--line)}
+.card h3{color:var(--tx)}.card .m{color:var(--mut)}.card .m:first-child{color:var(--acc)}.card .p{color:#fff}
+.card:hover{box-shadow:0 0 0 1px var(--acc),0 14px 34px rgba(0,0,0,.5)}
+.card .ph img,.pd img,.thumb,.up img{background:var(--card2)}
+.tag{background:var(--acc);color:#06111f}.tag.low{background:#d64545;color:#fff}
+.tools input,.tools select,.fg input,.fg select,.fg textarea,.stock,.autocomplete-list{background:var(--bg);color:var(--tx);border:1px solid var(--line)}
+.autocomplete-list button{background:var(--card);color:var(--tx)}.autocomplete-list button:hover,.autocomplete-list button.active{background:var(--card2);color:var(--acc)}
+.chip{background:var(--card);color:var(--tx);border-color:var(--line)}.chip:hover{border-color:var(--acc)}
+.chip.on{background:var(--acc);color:#06111f;border-color:var(--acc)}
+.tabs{border-color:var(--line)}.tabs button{color:var(--mut)}.tabs button.on{color:var(--acc);border-color:var(--acc)}
+th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody tr:hover{background:var(--card2)}
+.pill{background:var(--card2);color:var(--tx)}.pill.y{background:#3a2f10;color:#f3c969}.pill.ok{background:#10352a;color:#5fe0b0}.pill.low{background:#3d1a1a;color:#ff8f86}
+.qty{border-color:var(--line)}.qty button{color:var(--tx)}.qty button:hover:not(:disabled){background:var(--card2)}
+.x{background:#3d1a1a;color:#ff8f86}.x:hover{background:#552222}
+.hint{background:#3a2f10;color:#f3c969}
+.pd .brand{color:var(--acc)}
+.foot{background:#070a10;border-top:1px solid var(--line);color:var(--mut)}
+.toast{background:var(--card2);border:1px solid var(--line)}
+.modal{background:rgba(3,6,12,.7);z-index:160}
+/* Carrito lateral */
+.scrim{position:fixed;inset:0;background:rgba(3,6,12,.6);z-index:140}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(400px,100%);transform:translateX(100%);transition:transform .25s;z-index:150;display:flex;flex-direction:column;background:var(--card);border-left:1px solid var(--line)}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.2rem;border-bottom:1px solid var(--line)}
+.db{flex:1;overflow-y:auto;padding:1rem 1.2rem;display:grid;gap:.9rem;align-content:start}
+.df{padding:1rem 1.2rem;border-top:1px solid var(--line)}.df:empty{display:none}
+.di{display:grid;grid-template-columns:64px 1fr auto;gap:.8rem;align-items:center}
+.di img{width:64px;height:52px;border-radius:8px;object-fit:cover}
+.di>div{display:grid;gap:.25rem;font-size:.85rem;color:var(--mut)}
+.di strong{color:var(--tx);font-size:.92rem;line-height:1.25}
+.addok{display:flex;gap:1rem;align-items:center}
+.addok img{width:84px;height:64px;object-fit:cover;border-radius:8px}
+.addok div{display:grid;gap:.2rem;color:var(--mut)}.addok strong{color:var(--tx)}
+@media(max-width:860px){.bar{flex-wrap:wrap}.hsearch{order:3;max-width:none;flex-basis:100%}}
+
+/* ===== Animaciones ===== */
+@keyframes rise{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;scale:.94;translate:0 10px}to{opacity:1;scale:1;translate:0 0}}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -10px}}
+@keyframes toastIn{from{opacity:0;translate:30px 0}to{opacity:1;translate:0 0}}
+@keyframes bump{0%{scale:1}35%{scale:1.45}100%{scale:1}}
+@keyframes grid{to{background-position:48px 48px}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(90,176,255,0)}50%{box-shadow:0 0 0 6px rgba(90,176,255,.18)}}
+.hero-in>div:first-child>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.hero-in>div:first-child>:nth-child(2){animation-delay:.08s}
+.hero-in>div:first-child>:nth-child(3){animation-delay:.16s}
+.hero-in>div:first-child>:nth-child(4){animation-delay:.26s}
+.hc{animation:rise .8s cubic-bezier(.2,.7,.2,1) both,floaty 6s ease-in-out infinite}
+.hc0{animation-delay:.3s,1.1s}.hc1{animation-delay:.42s,1.5s}.hc2{animation-delay:.54s,1.9s}
+.hero::before{animation:grid 24s linear infinite}
+.view.on{animation:fadeIn .35s ease both}
+.card{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+.chip,.btn,.qty button,.x,.cartbtn{transition:background .2s,color .2s,border-color .2s,scale .15s}
+.btn:active:not(:disabled),.chip:active,.qty button:active:not(:disabled),.cartbtn:active{scale:.95}
+.hsearch input{transition:border-color .2s,box-shadow .2s}
+.hsearch input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(90,176,255,.18)}
+.modal.on{animation:fadeIn .2s ease both}
+.modal.on .mc{animation:pop .28s cubic-bezier(.2,.8,.2,1) both}
+.toast{animation:toastIn .35s cubic-bezier(.2,.8,.2,1) both}
+.di{animation:rise .4s cubic-bezier(.2,.7,.2,1) both}
+.drawer.on .di:nth-child(2){animation-delay:.05s}.drawer.on .di:nth-child(3){animation-delay:.1s}.drawer.on .di:nth-child(n+4){animation-delay:.15s}
+.scrim:not([hidden]){animation:fadeIn .25s ease both}
+.badge.bump,.cartbtn.bump{animation:bump .45s ease}
+.cartbtn.bump{animation:glow .6s ease}
+.tabs button{transition:color .2s,border-color .2s}
+tbody tr{transition:background .15s}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <header><div class="bar">
-  <div class="logo"><img id="storeLogo" alt="" hidden><span id="storeTitle">TecnoShop</span></div>
+  <div class="logo"><img id="storeLogo" alt="" hidden><span id="storeTitle">TechnoStore</span></div>
+  <form class="hsearch" id="hSearchForm" role="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="hSearch" type="search" placeholder="Buscar laptops, audífonos, marcas…" aria-label="Buscar productos"></form>
   <nav>
     <button data-v="catalog" class="on">Catálogo</button>
     <button data-v="orders" id="navOrders" hidden>Mis pedidos</button>
     <button data-v="profile" id="navProfile" hidden>Mi perfil</button>
     <button data-v="admin" id="navAdmin" hidden>Administración</button>
-    <button data-v="cart" id="navCart">Carrito<span id="cartBadge" class="badge" hidden>0</span></button>
+    <button type="button" id="navCart" class="cartbtn" aria-label="Abrir carrito"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 7H6"/></svg>Carrito<span id="cartBadge" class="badge" hidden>0</span></button>
     <button id="navLogin">Iniciar sesión</button>
     <button id="navReg">Registrarse</button>
     <button id="navLogout" hidden>Cerrar sesión</button>
@@ -327,7 +427,7 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
     </div>
   </section>
 </main>
-<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tu tienda de tecnología</span><span id="footContact"></span></div></footer>
+<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><span id="footContact"></span></div></footer>
 
 <!-- MODAL LOGIN / REGISTRO -->
 <div class="modal" id="mAuth"><div class="mc">
@@ -435,6 +535,12 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
   <div class="mf"><button class="btn ghost" data-close>Cerrar</button></div>
 </div></div>
 
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Carrito de compras" aria-hidden="true">
+  <div class="dh"><h3>Tu carrito</h3><button type="button" class="x" id="dClose" aria-label="Cerrar carrito">✕</button></div>
+  <div class="db" id="dBody"></div><div class="df" id="dFoot"></div>
+</aside>
+<div class="modal" id="mInfo"><div class="mc"><h3 id="infTitle"></h3><div id="infBody"></div><div class="mf" id="infBtns"></div></div></div>
 <div id="toasts" aria-live="polite"></div>
 
 <script>
@@ -679,7 +785,7 @@ async function loadStore() {
   const c1 = isHex(d.color_primario) ? d.color_primario : '#1F4E79', c2 = isHex(d.color_secundario) ? d.color_secundario : '#FFF2CC';
   root.setProperty('--brand', c1); root.setProperty('--brand-d', shade(c1, -.25));
   root.setProperty('--brand-dd', shade(c1, -.45)); root.setProperty('--brand-l', shade(c1, .25));
-  root.setProperty('--sand', c2); root.setProperty('--accent', c2);
+  root.setProperty('--sand', c2); root.setProperty('--accent', c2); root.setProperty('--acc', lum(c1) > .5 ? c1 : shade(c1, .55));
   const lg = $('#storeLogo');
   lg.onerror = () => { lg.hidden = true; };
   if (d.logo_url) { lg.src = d.logo_url; lg.hidden = false; } else lg.hidden = true;
@@ -702,8 +808,8 @@ function renderCatalog() {
   const list = cur.filter(p => !curCat || p.categoria === curCat).sort(
     s === 'asc' ? (a, b) => a.precio - b.precio : s === 'desc' ? (a, b) => b.precio - a.precio : s === 'name' ? (a, b) => a.nombre.localeCompare(b.nombre) : () => 0);
   $('#count').textContent = list.length + (list.length === 1 ? ' producto' : ' productos');
-  $('#productGrid').innerHTML = list.length ? list.map(p => `
-    <article class="card">
+  $('#productGrid').innerHTML = list.length ? list.map((p, ix) => `
+    <article class="card" style="--i:${Math.min(ix, 12)}">
       <div class="ph" onclick="showProduct(${+p.id_producto})">
         <img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="${esc(p.nombre)}" loading="lazy" ${dat(p)}>
         ${+p.destacado ? '<span class="tag">Destacado</span>' : ''}${+p.stock > 0 && +p.stock <= 5 ? '<span class="tag low">Últimas unidades</span>' : ''}
@@ -738,7 +844,7 @@ $('#bFeat').onclick = () => loadList('obtener_destacados');
 let cart = [], cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }, cartPay = 'Tarjeta crédito';
 function paintBadge() {
   const n = cart.reduce((s, i) => s + +i.cantidad, 0), b = $('#cartBadge');
-  b.textContent = n; b.hidden = !n;
+  b.textContent = n; b.hidden = !n; paintDrawer();
 }
 async function refreshCart() {
   if (!user) { cart = []; paintBadge(); return; }
@@ -785,7 +891,7 @@ async function addCart(id) {
   if (!user) { toast('Inicia sesión para usar el carrito', true); return openAuth(); }
   const r = await api('agregar_carrito', { id_producto: id, cantidad: 1 }, true);
   if (!r.success) return toast(r.error, true);
-  toast('Producto añadido al carrito'); refreshCart();
+  await refreshCart(); flyToCart(); setTimeout(() => confirmAdd(id), flyDone ? 520 : 0);
 }
 async function setQty(id, n) {   // n <= 0 quita el producto
   const r = await api('actualizar_carrito', { id_producto: id, cantidad: n }, true);
@@ -799,7 +905,7 @@ async function checkout() {
     metodo_pago: cartPay
   }, true);
   if (!r.success) return toast(r.error, true);
-  toast(`¡Pedido #${r.id_pedido} confirmado!`);
+  const tot = cart.reduce((s, i) => s + +i.subtotal, 0); notice('¡Pedido confirmado!', `<p>Tu pedido <b>#${r.id_pedido}</b> por <b>${money(tot)}</b> quedó registrado. Puedes seguir su estado en “Mis pedidos”.</p>`);
   cart = []; paintBadge(); loadList('listar_catalogo'); show('orders');
 }
 
@@ -1175,6 +1281,77 @@ $$('[data-rep]').forEach(b => b.onclick = async () => {
   } catch (e) { toast('No se pudo descargar el reporte', true); }
   finally { b.disabled = false; b.textContent = txt; }
 });
+
+/* ---------- TechnoStore: carrito lateral, búsqueda del header y modales ---------- */
+const openDrawer = () => { $('#drawer').classList.add('on'); $('#drawer').setAttribute('aria-hidden', 'false'); $('#scrim').hidden = false; };
+const closeDrawer = () => { $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden', 'true'); $('#scrim').hidden = true; };
+$('#navCart').onclick = openDrawer;
+$('#dClose').onclick = $('#scrim').onclick = closeDrawer;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+function paintDrawer() {
+  const body = $('#dBody'), foot = $('#dFoot');
+  if (!user) {
+    body.innerHTML = '<div class="empty">Inicia sesión para guardar productos en tu carrito.</div>';
+    foot.innerHTML = '<button class="btn full" id="dLogin">Iniciar sesión</button>';
+    $('#dLogin').onclick = () => { closeDrawer(); openAuth(); };
+    return;
+  }
+  if (!cart.length) { body.innerHTML = '<div class="empty">Tu carrito está vacío.</div>'; foot.innerHTML = ''; return; }
+  const total = cart.reduce((s, i) => s + +i.subtotal, 0), units = cart.reduce((s, i) => s + +i.cantidad, 0);
+  body.innerHTML = cart.map(i => `<div class="di">
+    <img src="${esc(i.imagen_url || 'img/default.jpg')}" alt="" ${dat(i)}>
+    <div><strong>${esc(i.nombre)}</strong><span>${money(i.precio)} c/u</span>
+      <div class="qty" style="width:max-content"><button aria-label="Quitar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad - 1})">−</button><span>${+i.cantidad}</span><button aria-label="Agregar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad + 1})" ${+i.cantidad >= +i.stock ? 'disabled' : ''}>+</button></div></div>
+    <b>${money(i.subtotal)}</b></div>`).join('');
+  foot.innerHTML = `<div class="line tot"><span>Total (${units})</span><span>${money(total)}</span></div><button class="btn ok full" id="dGo">Ir a pagar</button>`;
+  $('#dGo').onclick = () => { closeDrawer(); show('cart'); };
+}
+
+function notice(title, html, btns = [['Entendido', 'ok', () => close('mInfo')]]) {
+  $('#infTitle').textContent = title; $('#infBody').innerHTML = html;
+  const box = $('#infBtns'); box.innerHTML = '';
+  btns.forEach(([t, c, f]) => { const b = document.createElement('button'); b.className = 'btn ' + c; b.textContent = t; b.onclick = f; box.append(b); });
+  open('mInfo');
+}
+function confirmAdd(id) {
+  const it = cart.find(i => +i.id_producto === id); if (!it) return;
+  const total = cart.reduce((s, i) => s + +i.subtotal, 0);
+  notice('Añadido al carrito', `<div class="addok"><img src="${esc(it.imagen_url || 'img/default.jpg')}" alt="" ${dat(it)}><div><strong>${esc(it.nombre)}</strong><span>${+it.cantidad} en tu carrito · Total ${money(total)}</span></div></div>`,
+    [['Seguir comprando', 'ghost', () => close('mInfo')], ['Ver carrito', 'ok', () => { close('mInfo'); openDrawer(); }]]);
+}
+
+$('#hSearchForm').onsubmit = e => {
+  e.preventDefault();
+  const q = $('#hSearch').value.trim();
+  show('catalog'); $('#searchInput').value = q;
+  loadList(q ? 'buscar_productos' : 'listar_catalogo', q ? { q } : {});
+  $('#v-catalog').scrollIntoView({ behavior: 'smooth' });
+};
+
+/* ---------- Animaciones ---------- */
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lastAddBtn = null, flyDone = false, lastUnits = 0;
+document.addEventListener('click', e => { lastAddBtn = e.target.closest('button'); }, true);
+function flyToCart() {
+  flyDone = false;
+  const img = lastAddBtn && lastAddBtn.closest('.card') && lastAddBtn.closest('.card').querySelector('.ph img');
+  if (!img || reduceMotion()) return;
+  const a = img.getBoundingClientRect(), t = $('#navCart').getBoundingClientRect();
+  const c = img.cloneNode();
+  Object.assign(c.style, { position: 'fixed', left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px', objectFit: 'cover', borderRadius: '14px', zIndex: 300, pointerEvents: 'none', margin: 0 });
+  document.body.append(c); flyDone = true;
+  const dx = t.left + t.width / 2 - (a.left + a.width / 2), dy = t.top + t.height / 2 - (a.top + a.height / 2);
+  c.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx * .6}px,${dy * .5 - 40}px) scale(.45)`, opacity: .95, offset: .55 }, { transform: `translate(${dx}px,${dy}px) scale(.05)`, opacity: .2 }],
+    { duration: 600, easing: 'cubic-bezier(.45,0,.75,.4)' }).onfinish = () => c.remove();
+}
+const _paintDrawer = paintDrawer;
+paintDrawer = function () {   // pulso del contador al sumar unidades
+  _paintDrawer();
+  const n = cart.reduce((s, i) => s + +i.cantidad, 0);
+  if (n > lastUnits) ['#cartBadge', '#navCart'].forEach(s => { const el = $(s); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
+  lastUnits = n;
+};
 
 /* ---------- Inicio ---------- */
 async function syncSession() {   // la sesión real vive en el servidor
