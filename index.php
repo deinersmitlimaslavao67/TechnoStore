@@ -111,6 +111,7 @@ footer{text-align:center;padding:1.5rem;color:var(--mut);font-size:.9rem}
 .badge{background:#f0b429;color:#3b2a00;border-radius:99px;padding:0 .45rem;font-size:.75rem;font-weight:700;margin-left:.2rem}
 .foot{background:var(--brand-dd);color:#b9c8d6;margin-top:2rem;padding:1.6rem 1rem}
 .foot-in{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.foot b{color:#fff}
+
 /* ===== Carrito ===== */
 .cartwrap{display:grid;grid-template-columns:1fr 350px;gap:1.4rem;align-items:start}
 .ci{display:grid;grid-template-columns:90px 1fr auto auto auto;gap:1rem;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:.8rem;margin-bottom:.8rem}
@@ -197,6 +198,94 @@ th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody
 .foot{background:#070a10;border-top:1px solid var(--line);color:var(--mut)}
 .toast{background:var(--card2);border:1px solid var(--line)}
 .modal{background:rgba(3,6,12,.7);z-index:160}
+
+/* Estilos de Términos dentro de modales */
+.terms-box{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:1rem;max-height:280px;overflow-y:auto;font-size:.88rem;line-height:1.6;margin-bottom:1rem;color:var(--tx)}
+.terms-box h4{color:var(--acc);margin:0.8rem 0 0.3rem;font-size:.95rem}
+.terms-box p{margin-bottom:.6rem;color:#c9d2e2}
+.terms-box ul{margin:0 0 .6rem 1.2rem}
+
+/* Estilos para obligar a aceptar términos al ingresar */
+.modal.mandatory-modal {
+  z-index: 99999 !important;
+  background: rgba(3, 6, 12, 0.96) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Modal interactivo de Confirmación / Cargando */
+.action-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 12, 0.88);
+  backdrop-filter: blur(10px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.action-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.action-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.action-overlay.active .action-card {
+  transform: scale(1);
+}
+.spinner-icon {
+  width: 60px;
+  height: 60px;
+  border: 4px solid var(--card2);
+  border-top-color: var(--acc);
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.check-icon {
+  width: 65px;
+  height: 65px;
+  background: #22c58b;
+  color: #04140d;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem;
+  animation: popIcon 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIcon {
+  0% { transform: scale(0); }
+  80% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.action-title {
+  font-size: 1.35rem;
+  color: var(--tx);
+  margin-bottom: 0.4rem;
+  font-family: Sora, sans-serif;
+}
+.action-desc {
+  font-size: 0.95rem;
+  color: var(--mut);
+}
+
 /* Carrito lateral */
 .scrim{position:fixed;inset:0;background:rgba(3,6,12,.6);z-index:140}
 .drawer{position:fixed;top:0;right:0;height:100%;width:min(400px,100%);transform:translateX(100%);transition:transform .25s;z-index:150;display:flex;flex-direction:column;background:var(--card);border-left:1px solid var(--line)}
@@ -291,7 +380,6 @@ tbody tr{transition:background .15s}
     <button id="navLogout" hidden>Cerrar sesión</button>
   </nav>
 </div></header>
-
 <div id="home">
 <section class="hero"><div class="hero-in">
   <div>
@@ -309,7 +397,6 @@ tbody tr{transition:background .15s}
   <div><i>🛒</i><p><b>Compra fácil</b><span>Carrito y pedido en 2 pasos</span></p></div>
 </div></section>
 </div>
-
 <main class="wrap">
   <!-- CATÁLOGO -->
   <section id="v-catalog" class="view on">
@@ -324,13 +411,11 @@ tbody tr{transition:background .15s}
     <div class="chips" id="chips"></div>
     <div class="grid" id="productGrid"></div>
   </section>
-
   <!-- PEDIDOS -->
   <section id="v-orders" class="view">
     <h2>Mis pedidos</h2>
     <div class="tw"><table><thead><tr><th>Pedido</th><th>Estado</th><th>Fecha</th><th>Pago</th><th>Total</th><th></th></tr></thead><tbody id="ordersBody"></tbody></table></div>
   </section>
-
   <!-- PERFIL -->
   <section id="v-profile" class="view">
     <h2>Mi perfil</h2>
@@ -382,13 +467,11 @@ tbody tr{transition:background .15s}
       </form>
     </div>
   </section>
-
   <!-- CARRITO -->
   <section id="v-cart" class="view">
     <h2>Mi carrito</h2>
     <div id="cartBox"></div>
   </section>
-
   <!-- ADMIN -->
   <section id="v-admin" class="view">
     <h2>Administración</h2>
@@ -400,7 +483,6 @@ tbody tr{transition:background .15s}
       <button data-t="tie">Tienda</button>
       <button data-t="rep">Reportes</button>
     </div>
-
     <div class="panel on" id="t-prod">
       <div class="tools">
         <input id="fProd" type="search" placeholder="Filtrar productos por nombre, marca o categoría">
@@ -413,7 +495,6 @@ tbody tr{transition:background .15s}
         <tbody id="prodBody"></tbody>
       </table></div>
     </div>
-
     <div class="panel" id="t-cat">
       <div class="tools"><button class="btn ok" id="newCat">Nueva categoría</button><button type="button" class="btn ghost" id="togCat" style="flex:0 0 auto">Ver eliminados</button></div>
       <div class="tw"><table>
@@ -436,16 +517,15 @@ tbody tr{transition:background .15s}
         <tbody id="usrBody"></tbody>
       </table></div>
     </div>
-
     <div class="panel" id="t-tie">
       <form class="tw tform" id="fTienda">
         <h3>Personalización de la tienda</h3>
         <div class="fg"><label for="tNom">Nombre de la tienda</label><input id="tNom" maxlength="80" required></div>
         <div class="fg"><label for="tDes">Descripción (se muestra en el banner de inicio)</label><textarea id="tDes"></textarea></div>
         <div class="row2">
-          <div class="fg"><label for="tLogo">Logo (ruta, URL o subir archivo)</label><input id="tLogo" maxlength="255" placeholder="img/logo.png">
+          <div class="fg"><label for="tLogo">Logo (ruta, URL o subir archivo)</label><input id="tLogo" maxlength="255" placeholder="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200">
             <div class="up"><img alt=""><input type="file" data-target="tLogo" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Subir logo"></div></div>
-          <div class="fg"><label for="tBan">Banner (ruta, URL o subir archivo)</label><input id="tBan" maxlength="255" placeholder="img/banner.jpg">
+          <div class="fg"><label for="tBan">Banner (ruta, URL o subir archivo)</label><input id="tBan" maxlength="255" placeholder="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200">
             <div class="up"><img alt=""><input type="file" data-target="tBan" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Subir banner"></div></div>
         </div>
         <div class="row2">
@@ -461,7 +541,6 @@ tbody tr{transition:background .15s}
         <div class="mf"><button class="btn ok">Guardar cambios</button></div>
       </form>
     </div>
-
     <div class="panel" id="t-rep">
       <p class="sub" style="margin-bottom:1rem">Descarga la información de la tienda en archivos de Excel (.xlsx).</p>
       <div class="pgrid">
@@ -475,9 +554,19 @@ tbody tr{transition:background .15s}
     </div>
   </section>
 </main>
-<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><span id="footContact"></span></div></footer>
+<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país · <a href="#" id="btnFooterTerms" style="color:var(--acc);text-decoration:underline">Términos y Condiciones</a></span><span id="footContact"></span></div></footer>
 
-<!-- MODAL LOGIN / REGISTRO -->
+<!-- OVERLAY DE CARGA / CONFIRMACIÓN DE ACCIONES -->
+<div class="action-overlay" id="actionOverlay">
+  <div class="action-card">
+    <div id="actionSpinner" class="spinner-icon"></div>
+    <div id="actionCheck" class="check-icon" style="display:none">✓</div>
+    <div id="actionTitle" class="action-title">Procesando…</div>
+    <div id="actionDesc" class="action-desc">Por favor espera un momento.</div>
+  </div>
+</div>
+
+<!-- MODAL LOGIN / REGISTRO CON TÉRMINOS Y CONDICIONES OBLIGATORIOS -->
 <div class="modal" id="mAuth"><div class="mc">
   <div class="tabs" id="authTabs"><button type="button" class="on" data-a="login">Iniciar sesión</button><button type="button" data-a="reg">Crear cuenta</button></div>
   <form id="fAuth">
@@ -504,8 +593,57 @@ tbody tr{transition:background .15s}
       <div class="fg"><label for="rCiudad">Ciudad</label><input id="rCiudad" maxlength="100" autocomplete="address-level2"></div>
     </div>
     <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
-    <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
+    
+    <!-- Términos y Condiciones dentro de Registro -->
+    <div class="fg chk" style="margin-top:1rem;background:var(--card2);padding:.8rem;border-radius:8px;border:1px solid var(--line)">
+      <label>
+        <input type="checkbox" id="chkTerms" required>
+        <span style="font-size:.85rem">Acepto los <a href="#" id="btnShowTerms" style="color:var(--acc);text-decoration:underline">Términos y Condiciones</a> y la Política de Tratamiento de Datos.</span>
+      </label>
+    </div>
+
+    <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok" id="btnSubmitReg" disabled>Crear cuenta</button></div>
   </form>
+</div></div>
+
+<!-- MODAL INTERACTIVO DE TÉRMINOS Y CONDICIONES (OBLIGATORIO AL ENTRAR Y VISIBLE EN REGISTRO) -->
+<div class="modal" id="mTermsModal"><div class="mc wide">
+  <h3>Términos y Condiciones de Uso</h3>
+  <div class="terms-box">
+    <p><strong>Última actualización: 3 de noviembre de 2026</strong></p>
+    
+    <h4>1. Introducción y Aceptación</h4>
+    <p>Bienvenido a <strong>TechnoStore</strong>. Al acceder, navegar, crear una cuenta o realizar compras en nuestra plataforma web, el usuario acepta de manera expresa, implícita e incondicional quedar vinculado por los presentes Términos y Condiciones de Uso, así como por la legislación colombiana aplicable, en especial el Estatuto del Consumidor (Ley 1480 de 2011) y la Ley de Protección de Datos Personales (Ley 1581 de 2012).</p>
+
+    <h4>2. Capacidad Legal del Usuario</h4>
+    <p>El uso del sitio web y la realización de transacciones de compraventa están reservados exclusivamente para personas naturales o jurídicas con capacidad legal para contratar según las leyes de la República de Colombia. Los menores de edad no están autorizados para realizar compras de manera autónoma sin la representación legal o supervisión de sus padres o tutores.</p>
+
+    <h4>3. Registro de Cuenta y Custodia de Credenciales</h4>
+    <p>Para realizar pedidos y acceder a ciertas funciones del sistema, el usuario deberá registrarse creando una cuenta de acceso. El usuario se compromete a proporcionar información veraz, exacta, actualizada y completa. La custodia, confidencialidad y uso de la contraseña asociada a la cuenta son de responsabilidad única y exclusiva del usuario.</p>
+
+    <h4>4. Precios, Inventarios y Medios de Pago</h4>
+    <p>Todos los precios publicados en el catálogo están expresados en Pesos Colombianos (COP) e incluyen el Impuesto al Valor Agregado (IVA) aplicable. TechnoStore se reserva el derecho de modificar los precios en cualquier momento sin previo aviso. La disponibilidad de los productos se actualiza en tiempo real; en caso de agotamiento de stock posterior a la recepción del pedido, se notificará de inmediato al cliente para proceder con el reembolso o el cambio de producto.</p>
+    <p>Los métodos de pago habilitados incluyen tarjetas de crédito, transferencias electrónicas a través de PSE, Nequi y pago contraentrega en las zonas habilitadas.</p>
+
+    <h4>5. Envíos y Tiempos de Entrega</h4>
+    <p>TechnoStore realiza envíos a nivel nacional en la República de Colombia. Los tiempos y costos de envío variarán según el destino geográfico, el peso del paquete y las transportadoras aliadas. Los plazos informados son estimados y pueden presentar variaciones por caso fortuito, fuerza mayor o inconvenientes logísticos de las empresas de mensajería.</p>
+
+    <h4>6. Derecho de Retracto y Políticas de Garantía</h4>
+    <p><strong>Derecho de Retracto:</strong> Conforme al Artículo 47 de la Ley 1480 de 2011, el comprador podrá ejercer el derecho de retracto dentro de los cinco (5) días hábiles siguientes a la entrega del producto, devolviendo el bien en las mismas condiciones en que lo recibió (sin uso, con empaques y sellos originales e intactos). Los costos de transporte para la devolución serán asumidos por el consumidor.</p>
+    <p><strong>Garantías:</strong> Todos los productos cuentan con la garantía legal offeredida por el fabricante o distribuidor oficial. Ante fallas de funcionamiento o defectos de fábrica, el usuario deberá contactar a nuestra línea de atención para iniciar el trámite de revisión técnica y efectividad de la garantía.</p>
+
+    <h4>7. Protección de Datos Personales (Tratamiento de Información)</h4>
+    <p>Al aceptar estos términos, el usuario autoriza de manera previa, expresa e informada a TechnoStore para recolectar, almacenar, usar y procesar sus datos personales (nombre, cédula, teléfono, dirección, correo electrónico) con la finalidad exclusiva de gestionar compras, enviar facturación, tramitar despachos, brindar soporte técnico y notificar actualizaciones del pedido, en cumplimiento estricto del Régimen General de Protección de Datos Personales (Ley 1581 de 2012).</p>
+
+    <h4>8. Propiedad Intelectual</h4>
+    <p>Todo el contenido presente en la plataforma (logos, textos, diseños, código fuente, fotografías de catálogo, software, interfaz gráfica e ilustraciones) es propiedad exclusiva de TechnoStore o cuenta con las licencias correspondientes. Queda estrictamente prohibida su copia, distribución o comercialización sin autorización previa por escrito.</p>
+
+    <h4>9. Modificaciones a los Términos</h4>
+    <p>TechnoStore se reserva la facultad de actualizar o corregir los presentes Términos y Condiciones en cualquier momento. La fecha reflejada en la parte superior del documento indicará su última revisión.</p>
+  </div>
+  <div class="mf">
+    <button type="button" class="btn ok" id="btnAcceptTermsModal">He leído y acepto</button>
+  </div>
 </div></div>
 
 <!-- MODAL PRODUCTO (crear / editar) -->
@@ -523,7 +661,7 @@ tbody tr{transition:background .15s}
     <div class="fg"><label for="pPre">Precio (COP)</label><input type="number" id="pPre" min="0" step="0.01" required></div>
     <div class="fg"><label for="pSto">Stock</label><input type="number" id="pSto" min="0" required></div>
   </div>
-  <div class="fg"><label for="pImg">Imagen (ruta, URL o subir archivo)</label><input id="pImg" value="img/default.jpg" maxlength="255">
+  <div class="fg"><label for="pImg">Imagen (ruta, URL o subir archivo)</label><input id="pImg" value="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500" maxlength="255">
     <div class="up"><img alt=""><input type="file" data-target="pImg" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Subir imagen del producto"></div></div>
   <div class="fg chk"><label><input type="checkbox" id="pDest"> Mostrar como destacado</label></div>
   <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok" id="pSave">Guardar producto</button></div>
@@ -604,9 +742,44 @@ const $$ = s => [...document.querySelectorAll(s)];
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = n => '$' + Number(n || 0).toLocaleString('es-CO');
 const PALETA = [['#1F4E79','#3d8bd1'],['#6a3fb5','#b07cf0'],['#0f8b6d','#4cd1a3'],['#c0562b','#f2a65a'],['#b0306a','#f06fa4'],['#2b3a8c','#5a7bf0'],['#2e7d8c','#58c3d6'],['#7a5c12','#e0b84a']];
-/* Imagen de respaldo: ilustración por categoría (se usa si no existe la foto en img/) */
+
+/* ---------- Animación de Carga / Confirmación ---------- */
+function runActionFlow(titleLoading, descLoading, titleSuccess, descSuccess, asyncAction) {
+  const overlay = $('#actionOverlay');
+  const spinner = $('#actionSpinner');
+  const check = $('#actionCheck');
+  const title = $('#actionTitle');
+  const desc = $('#actionDesc');
+
+  // Estado 1: Cargando
+  spinner.style.display = 'block';
+  check.style.display = 'none';
+  title.textContent = titleLoading;
+  desc.textContent = descLoading;
+  overlay.classList.add('active');
+
+  setTimeout(async () => {
+    const success = await asyncAction();
+    if (success) {
+      // Estado 2: Confirmado / Éxito
+      spinner.style.display = 'none';
+      check.style.display = 'grid';
+      title.textContent = titleSuccess;
+      desc.textContent = descSuccess;
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+      }, 1500);
+    } else {
+      // Si falla, ocultar overlay
+      overlay.classList.remove('active');
+    }
+  }, 1000);
+}
+
 function art(d) {
-  const n = d.n || '', c = (d.c || '').toLowerCase();
+  const n = (d && d.nombre) || (d && d.n) || 'Producto';
+  const c = ((d && d.categoria) || (d && d.c) || '').toLowerCase();
   let k = 0; for (const ch of n) k = (k * 31 + ch.charCodeAt(0)) >>> 0;
   const [a, b] = PALETA[k % PALETA.length], W = 'fill="#fff" fill-opacity=".93"';
   let ic;
@@ -616,18 +789,24 @@ function art(d) {
   else if (c.includes('gaming')) ic = `<rect x="105" y="85" width="190" height="105" rx="46" ${W}/><path d="M146 120v36M128 138h36" stroke="${a}" stroke-width="9" stroke-linecap="round"/><circle cx="246" cy="128" r="9" fill="${a}"/><circle cx="268" cy="150" r="9" fill="${b}"/>`;
   else if (c.includes('hogar')) ic = `<path d="M110 150l90-72 90 72v78H110z" ${W}/><rect x="176" y="170" width="48" height="58" rx="6" fill="${a}" fill-opacity=".6"/>`;
   else ic = `<path d="M120 100l80-38 80 38v90l-80 38-80-38z" ${W}/><path d="M120 100l80 38 80-38M200 138v90" stroke="${a}" stroke-width="6" fill="none"/>`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="335" cy="45" r="90" fill="#fff" fill-opacity=".07"/><circle cx="55" cy="285" r="110" fill="#fff" fill-opacity=".06"/>${ic}<text x="200" y="274" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" fill-opacity=".92">${esc(d.m || '')}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="335" cy="45" r="90" fill="#fff" fill-opacity=".07"/><circle cx="55" cy="285" r="110" fill="#fff" fill-opacity=".06"/>${ic}<text x="200" y="274" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#fff" fill-opacity=".92">${esc((d && d.marca) || (d && d.m) || '')}</text></svg>`;
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
-const dat = p => `data-n="${esc(p.nombre)}" data-c="${esc(p.categoria)}" data-m="${esc(p.marca)}"`;
+
+function dat(p) {
+  return `data-n="${esc(p.nombre || '')}" data-m="${esc(p.marca || '')}" data-c="${esc(p.categoria || '')}"`;
+}
+
 document.addEventListener('error', e => {
   const i = e.target;
-  if (i.tagName === 'IMG' && i.dataset.n !== undefined && !i.dataset.fb) { i.dataset.fb = 1; i.src = art(i.dataset); }
+  if (i.tagName === 'IMG' && !i.dataset.fb) { 
+    i.dataset.fb = '1'; 
+    i.src = art({ n: i.dataset.n, m: i.dataset.m, c: i.dataset.c }); 
+  }
 }, true);
 
 let user = null, cats = [], prods = [];
 try { user = JSON.parse(localStorage.getItem('currentUser')); } catch (e) {}
-
 function toast(msg, err) {
   const t = document.createElement('div');
   t.className = 'toast' + (err ? ' err' : '');
@@ -636,7 +815,6 @@ function toast(msg, err) {
   setTimeout(() => t.remove(), 3500);
 }
 
-/* Cliente API: GET para lecturas, POST (FormData) para escrituras */
 async function api(action, params = {}, post = false) {
   try {
     let res;
@@ -653,19 +831,83 @@ async function api(action, params = {}, post = false) {
     return { success: false, error: 'No se pudo conectar con el servidor.' };
   }
 }
+
+const open = id => $('#' + id).classList.add('on');
+const close = id => $('#' + id).classList.remove('on');
+$$('[data-close]').forEach(b => b.onclick = () => {
+  if (b.closest('.modal').id === 'mTermsModal' && !localStorage.getItem('terms_accepted')) return;
+  b.closest('.modal').classList.remove('on');
+});
+
+$$('.modal').forEach(m => m.addEventListener('mousedown', e => { 
+  if (e.target === m) {
+    if (m.id === 'mTermsModal' && !localStorage.getItem('terms_accepted')) return;
+    m.classList.remove('on'); 
+  }
+}));
+
+document.addEventListener('keydown', e => { 
+  if (e.key === 'Escape') {
+    $$('.modal.on').forEach(m => {
+      if (m.id === 'mTermsModal' && !localStorage.getItem('terms_accepted')) return;
+      m.classList.remove('on');
+    });
+  } 
+});
+
+/* ---------- Lógica de Términos Obligatorios ---------- */
+const chkTerms = $('#chkTerms');
+const btnSubmitReg = $('#btnSubmitReg');
+
+if (chkTerms && btnSubmitReg) {
+  chkTerms.addEventListener('change', () => {
+    btnSubmitReg.disabled = !chkTerms.checked;
+  });
+}
+
+$('#btnShowTerms').onclick = (e) => {
+  e.preventDefault();
+  $('#mTermsModal').classList.remove('mandatory-modal');
+  open('mTermsModal');
+};
+
+$('#btnFooterTerms').onclick = (e) => {
+  e.preventDefault();
+  $('#mTermsModal').classList.remove('mandatory-modal');
+  open('mTermsModal');
+};
+
+$('#btnAcceptTermsModal').onclick = () => {
+  localStorage.setItem('terms_accepted', 'true');
+  if (chkTerms) {
+    chkTerms.checked = true;
+    btnSubmitReg.disabled = false;
+  }
+  $('#mTermsModal').classList.remove('mandatory-modal');
+  close('mTermsModal');
+  toast('Gracias por aceptar nuestros Términos y Condiciones.');
+};
+
+function checkInitialTerms() {
+  const accepted = localStorage.getItem('terms_accepted');
+  if (!accepted) {
+    $('#mTermsModal').classList.add('mandatory-modal');
+    open('mTermsModal');
+  }
+}
+
+/* Autocompletado de dirección */
 let countryOptions = null;
 const cityOptionsCache = new Map();
-
 async function loadCountries() {
   if (countryOptions) return countryOptions;
-  const codes = 'AF AL DZ AD AO AG AR AM AU AT AZ BS BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CG CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW';
+  const codes = 'AF AL DZ AD AO AG AR AM AU AT AZ BS BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV CAM CA CF TD CL CN CO KM CG CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW';
   const displayNames = new Intl.DisplayNames(['es'], { type: 'region' });
   countryOptions = codes.split(' ').map(code => {
     try { return displayNames.of(code); } catch (e) { return code; }
   }).filter(Boolean).sort((a, b) => a.localeCompare(b, 'es'));
   return countryOptions;
 }
-
 async function loadCities(country, query = '') {
   if (!country || !query.trim()) return [];
   const key = country + '\0' + query.trim().toLowerCase();
@@ -675,7 +917,6 @@ async function loadCities(country, query = '') {
   cityOptionsCache.set(key, cities);
   return cities;
 }
-
 function bindAddressAutocomplete(input, getOptions, countryInput = null, clearOnCountryChange = false) {
   if (!input || input.dataset.autocompleteBound) return;
   input.dataset.autocompleteBound = '1';
@@ -687,7 +928,6 @@ function bindAddressAutocomplete(input, getOptions, countryInput = null, clearOn
   let active = -1;
   let options = [];
   let lastCountry = countryInput ? countryInput.value : '';
-
   const closeList = () => { list.hidden = true; active = -1; };
   const show = values => {
     options = values.slice(0, 12);
@@ -729,7 +969,6 @@ function bindAddressAutocomplete(input, getOptions, countryInput = null, clearOn
     } else if (e.key === 'Escape') closeList();
   };
   input.onblur = () => setTimeout(closeList, 120);
-
   if (countryInput && clearOnCountryChange) {
     countryInput.addEventListener('input', () => {
       if (lastCountry !== countryInput.value) {
@@ -740,7 +979,6 @@ function bindAddressAutocomplete(input, getOptions, countryInput = null, clearOn
     });
   }
 }
-
 function setupAddressAutocomplete(prefix) {
   const country = $('#' + prefix + 'Pais');
   const city = $('#' + prefix + 'Ciudad');
@@ -852,39 +1090,76 @@ function authTab(t) {
   $('#fAuth').hidden = t !== 'login'; $('#fReg').hidden = t !== 'reg';
 }
 function openAuth(t = 'login') { authTab(t); open('mAuth'); }
-$$('#authTabs button').forEach(b => b.onclick = () => authTab(b.dataset.a));
+$$('#authTabs button').forEach(b => b.onclick = () => {
+  const mode = b.dataset.a;
+  authTab(mode);
+});
 $('#navLogin').onclick = () => openAuth('login');
 $('#navReg').onclick = () => openAuth('reg');
-$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; saldo = null; paintSaldo(); paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
+$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
 
 function startSession(u) {
   user = u; localStorage.setItem('currentUser', JSON.stringify(u));
-  close('mAuth'); paintUser(); refreshCart(); refreshSaldo(); toast(`¡Bienvenido, ${u.nombre}!`);
+  close('mAuth'); paintUser(); refreshCart(); toast(`¡Bienvenido, ${u.nombre}!`);
 }
+
 async function doLogin(correo, password) {
-  const r = await api('login', { correo, password }, true);
-  if (!r.success) { toast(r.error || 'Correo o contraseña incorrectos', true); return false; }
-  startSession(r.user); return true;
+  let loginUser = null;
+  runActionFlow(
+    "Iniciando sesión…",
+    "Comprobando credenciales de acceso.",
+    "¡Bienvenido de nuevo!",
+    "Acceso concedido con éxito.",
+    async () => {
+      const r = await api('login', { correo, password }, true);
+      if (!r.success) { 
+        toast(r.error || 'Correo o contraseña incorrectos', true); 
+        return false; 
+      }
+      loginUser = r.user;
+      startSession(loginUser);
+      return true;
+    }
+  );
 }
+
 $('#fAuth').onsubmit = e => { e.preventDefault(); doLogin($('#lEmail').value.trim(), $('#lPass').value); };
+
 $('#fReg').onsubmit = async e => {
   e.preventDefault();
+  if (!chkTerms.checked) return toast('Debes aceptar los Términos y Condiciones para continuar', true);
   if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
+  
   const correo = $('#rEmail').value.trim(), password = $('#rPass').value;
-  const r = await api('registrar', {
-    nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
-    telefono: $('#rTel').value.trim(), pais: $('#rPais').value.trim(), ciudad: $('#rCiudad').value.trim(),
-    barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim()
-  }, true);
-  if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
-  $('#fReg').reset();
-  toast('Cuenta creada');
-  r.user ? startSession(r.user) : doLogin(correo, password);
+  
+  runActionFlow(
+    "Creando tu cuenta…",
+    "Registrando la información en el sistema.",
+    "¡Cuenta creada!",
+    "Tu perfil ha sido registrado correctamente.",
+    async () => {
+      const r = await api('registrar', {
+        nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
+        telefono: $('#rTel').value.trim(), pais: $('#rPais').value.trim(), ciudad: $('#rCiudad').value.trim(),
+        barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim()
+      }, true);
+      
+      if (!r.success) {
+        toast(r.error || 'No se pudo crear la cuenta', true);
+        return false;
+      }
+      $('#fReg').reset();
+      chkTerms.checked = false;
+      btnSubmitReg.disabled = true;
+      if (r.user) startSession(r.user);
+      return true;
+    }
+  );
 };
 
-/* ---------- Catálogo público ---------- */
+/* ---------- Catálogo ---------- */
 const isHex = h => /^#[0-9a-fA-F]{6}$/.test(h || '');
-function shade(hex, f) {   // f < 0 oscurece, f > 0 aclara
+function shade(hex, f) {
   const n = parseInt(hex.slice(1), 16);
   return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f).toString(16).padStart(2, '0')).join('');
 }
@@ -927,7 +1202,7 @@ function renderCatalog() {
   $('#productGrid').innerHTML = list.length ? list.map((p, ix) => `
     <article class="card" style="--i:${Math.min(ix, 12)}">
       <div class="ph" onclick="showProduct(${+p.id_producto})">
-        <img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="${esc(p.nombre)}" loading="lazy" ${dat(p)}>
+        <img src="${esc(p.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="${esc(p.nombre)}" loading="lazy" ${dat(p)}>
         ${+p.destacado ? '<span class="tag">Destacado</span>' : ''}${+p.stock > 0 && +p.stock <= 5 ? '<span class="tag low">Últimas unidades</span>' : ''}
       </div>
       <div class="b">
@@ -949,7 +1224,7 @@ $('#sortSel').onchange = renderCatalog;
 $('#goCat').onclick = () => $('#v-catalog').scrollIntoView({ behavior: 'smooth' });
 $('#goFeat').onclick = () => { $('#bFeat').click(); $('#v-catalog').scrollIntoView({ behavior: 'smooth' }); };
 function heroArt(list) {
-  $('#heroArt').innerHTML = list.slice(0, 3).map((p, i) => `<div class="hc hc${i}"><img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="" ${dat(p)}><div><b>${esc(p.nombre)}</b><span>${money(p.precio)}</span></div></div>`).join('');
+  $('#heroArt').innerHTML = list.slice(0, 3).map((p, i) => `<div class="hc hc${i}"><img src="${esc(p.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="" ${dat(p)}><div><b>${esc(p.nombre)}</b><span>${money(p.precio)}</span></div></div>`).join('');
 }
 $('#bSearch').onclick = () => loadList('buscar_productos', { q: $('#searchInput').value });
 $('#searchInput').onkeydown = e => { if (e.key === 'Enter') $('#bSearch').click(); };
@@ -981,7 +1256,7 @@ function paintCart() {
   const total = cart.reduce((s, i) => s + +i.subtotal, 0), units = cart.reduce((s, i) => s + +i.cantidad, 0);
   box.innerHTML = `<div class="cartwrap"><div>
     ${cart.map(i => `<div class="ci">
-      <img src="${esc(i.imagen_url || 'img/default.jpg')}" alt="" ${dat(i)}>
+      <img src="${esc(i.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="" ${dat(i)}>
       <div class="ci-t"><strong>${esc(i.nombre)}</strong><span>${esc(i.marca)} · ${esc(i.categoria)}</span><span>${money(i.precio)} c/u</span></div>
       <div class="qty"><button aria-label="Quitar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad - 1})">−</button><span>${+i.cantidad}</span><button aria-label="Agregar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad + 1})" ${+i.cantidad >= +i.stock ? 'disabled' : ''}>+</button></div>
       <div class="ci-s">${money(i.subtotal)}</div>
@@ -1011,7 +1286,7 @@ async function addCart(id) {
   if (!r.success) return toast(r.error, true);
   await refreshCart(); flyToCart(); setTimeout(() => confirmAdd(id), flyDone ? 520 : 0);
 }
-async function setQty(id, n) {   // n <= 0 quita el producto
+async function setQty(id, n) {
   const r = await api('actualizar_carrito', { id_producto: id, cantidad: n }, true);
   if (!r.success) toast(r.error, true); else if (n <= 0) toast('Producto quitado del carrito');
   loadCart();
@@ -1087,10 +1362,9 @@ async function orderDetail(id) {
   open('mOrd');
 }
 
-/* ---------- ADMIN: Productos (CRUD) ---------- */
+/* ---------- ADMIN: Productos ---------- */
 async function loadAdmin() { await loadCats(); await loadProds(); paintCats(); loadUsers(); loadAdminOrders(); loadTiendaForm(); }
-
-const verElim = { prod: false, cat: false, usr: false };   // ¿el panel muestra activos o eliminados?
+const verElim = { prod: false, cat: false, usr: false };
 async function loadProds() {
   const r = verElim.prod ? await api('listar_eliminados', { tipo: 'producto' }) : await api('admin_productos');
   prods = r.success ? r.data : [];
@@ -1105,14 +1379,14 @@ function paintProds() {
   });
   $('#prodBody').innerHTML = list.length ? list.map(p => del ? `
     <tr>
-      <td><img class="thumb" src="${esc(p.imagen_url || 'img/default.jpg')}" alt="" ${dat(p)}></td>
+      <td><img class="thumb" src="${esc(p.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="" ${dat(p)}></td>
       <td><strong>${esc(p.nombre)}</strong><div style="color:var(--mut);font-size:.82rem">${esc(p.marca)}</div></td>
       <td>${esc(p.categoria)}${+p.cat_activa ? '' : ' <span class="pill low">Categoría eliminada</span>'}</td>
       <td>${money(p.precio)}</td><td>${+p.stock}</td><td><span class="pill">Eliminado</span></td>
       <td><button class="btn ok sm" onclick="restaurar('producto',${+p.id_producto})">Restaurar</button></td>
     </tr>` : `
     <tr>
-      <td><img class="thumb" src="${esc(p.imagen_url || 'img/default.jpg')}" alt="" ${dat(p)}></td>
+      <td><img class="thumb" src="${esc(p.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="" ${dat(p)}></td>
       <td><strong>${esc(p.nombre)}</strong><div style="color:var(--mut);font-size:.82rem">${esc(p.marca)}</div></td>
       <td>${esc(p.categoria)}</td>
       <td>${money(p.precio)}</td>
@@ -1123,12 +1397,10 @@ function paintProds() {
 }
 $('#fProd').oninput = paintProds;
 $('#fCat').onchange = paintProds;
-
 async function saveStock(inp, nombre) {
   const r = await api('actualizar_stock', { nombre_producto: nombre, nuevo_stock: inp.value }, true);
   if (r.success) { toast('Stock actualizado'); loadProds(); } else toast(r.error, true);
 }
-
 function fillProd(p = {}) {
   $('#pId').value = p.id_producto || '';
   $('#pNom').value = p.nombre || '';
@@ -1138,14 +1410,14 @@ function fillProd(p = {}) {
   $('#pEsp').value = p.especificaciones || '';
   $('#pPre').value = p.precio ?? '';
   $('#pSto').value = p.stock ?? '';
-  $('#pImg').value = p.imagen_url || 'img/default.jpg';
+  $('#pImg').value = p.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500';
   $('#pDest').checked = !!+p.destacado;
   $('#pImg').dispatchEvent(new Event('input'));
 }
 $('#newProd').onclick = () => { $('#mProdTitle').textContent = 'Nuevo producto'; fillProd(); open('mProd'); };
 async function editProd(id) {
   let p = prods.find(x => +x.id_producto === id) || {};
-  const r = await api('obtener_producto', { id_producto: id });   // trae descripción y especificaciones completas
+  const r = await api('obtener_producto', { id_producto: id });
   if (r.success && r.data) p = { ...p, ...r.data };
   $('#mProdTitle').textContent = 'Editar producto';
   fillProd(p); open('mProd');
@@ -1165,7 +1437,7 @@ $('#fProdForm').onsubmit = async e => {
   close('mProd'); toast(id ? 'Producto actualizado' : 'Producto creado'); loadProds();
 };
 
-/* ---------- ADMIN: Categorías (CRUD) ---------- */
+/* ---------- ADMIN: Categorías ---------- */
 let catsDel = [];
 async function loadCatsView() {
   if (verElim.cat) { const r = await api('listar_eliminados', { tipo: 'categoria' }); catsDel = r.success ? r.data : []; }
@@ -1226,7 +1498,7 @@ $('#pedChips').onclick = e => { const b = e.target.closest('.chip'); if (b) { pe
 $('#fPed').oninput = paintAdminOrders;
 function changeOrderState(id, sel) {
   const e = sel.value; if (!e) return;
-  if (e === 'CANCELADO') { sel.value = ''; return askDelete('pedido_admin', id, ''); }   // cancelar pide confirmación
+  if (e === 'CANCELADO') { sel.value = ''; return askDelete('pedido_admin', id, ''); }
   setOrderState(id, e);
 }
 async function setOrderState(id, estado) {
@@ -1246,7 +1518,7 @@ async function adminOrderDetail(id) {
   open('mOrd');
 }
 
-/* ---------- ADMIN: Tienda (personalización) ---------- */
+/* ---------- ADMIN: Tienda ---------- */
 function prevTienda() {
   const c1 = $('#tC1').value, c2 = $('#tC2').value;
   $('#tPrev').style.background = c1; $('#tPrevSw').style.background = c2;
@@ -1319,7 +1591,7 @@ async function setRole(id, rol) {
   loadUsers();
 }
 
-/* ---------- ADMIN: alternar activos / eliminados + restaurar ---------- */
+/* ---------- Alternar eliminados / restaurar ---------- */
 $('#togProd').onclick = async function () { verElim.prod = !verElim.prod; this.textContent = verElim.prod ? 'Ver activos' : 'Ver eliminados'; $('#newProd').hidden = verElim.prod; await loadProds(); };
 $('#togCat').onclick = async function () { verElim.cat = !verElim.cat; this.textContent = verElim.cat ? 'Ver activas' : 'Ver eliminados'; $('#newCat').hidden = verElim.cat; await loadCatsView(); };
 $('#togUsr').onclick = async function () { verElim.usr = !verElim.usr; this.textContent = verElim.usr ? 'Ver activos' : 'Ver eliminados'; await loadUsers(); };
@@ -1332,7 +1604,7 @@ async function restaurar(tipo, id) {
   else loadUsers();
 }
 
-/* ---------- Mi perfil ---------- */
+/* ---------- Perfil ---------- */
 async function loadProfile() {
   const r = await api('perfil_obtener');
   if (!(r.success && r.data)) return toast(r.error || 'No se pudo cargar tu perfil', true);
@@ -1363,7 +1635,7 @@ $('#fPass').onsubmit = async e => {
   toast('Contraseña actualizada');
 };
 
-/* ---------- Detalle de producto (público) ---------- */
+/* ---------- Detalle Producto ---------- */
 async function showProduct(id) {
   const r = await api('detalle_producto', { id_producto: id });
   if (!(r.success && r.data)) return toast(r.error || 'Este producto ya no está disponible', true);
@@ -1371,7 +1643,7 @@ async function showProduct(id) {
   const raw = String(p.especificaciones || '');
   const specs = raw.split(raw.includes('\n') ? /\n/ : /,\s*/).map(x => x.trim()).filter(Boolean);
   $('#pdBody').innerHTML = `<div class="pd">
-    <img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="${esc(p.nombre)}" ${dat(p)}>
+    <img src="${esc(p.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="${esc(p.nombre)}" ${dat(p)}>
     <div>
       <div class="brand">${esc(p.marca)}</div><h3>${esc(p.nombre)}</h3>
       <div class="price">${money(p.precio)}</div>
@@ -1399,7 +1671,7 @@ $$('input[type=file][data-target]').forEach(f => {
   f.onchange = async () => { if (f.files[0]) await subirImagen(f.files[0], f.dataset.target); f.value = ''; };
 });
 
-/* ---------- Eliminar (compartido) ---------- */
+/* ---------- Eliminar ---------- */
 let pendingDel = null;
 function askDelete(tipo, id, nombre) {
   pendingDel = { tipo, id };
@@ -1422,12 +1694,12 @@ $('#delOk').onclick = async () => {
   if (tipo === 'producto') loadProds(); else if (tipo === 'usuario') loadUsers(); else { await loadCats(); paintCats(); }
 };
 
-/* ---------- ADMIN: Reportes en Excel ---------- */
+/* ---------- Reportes Excel ---------- */
 $$('[data-rep]').forEach(b => b.onclick = async () => {
   const txt = b.textContent; b.disabled = true; b.textContent = 'Generando…';
   try {
     const res = await fetch('reporte.php?tipo=' + encodeURIComponent(b.dataset.rep));
-    if ((res.headers.get('Content-Type') || '').includes('application/json')) {   // el servidor respondió un error
+    if ((res.headers.get('Content-Type') || '').includes('application/json')) {
       const r = await res.json(); return toast(r.error || 'No se pudo generar el reporte', true);
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1440,7 +1712,7 @@ $$('[data-rep]').forEach(b => b.onclick = async () => {
   finally { b.disabled = false; b.textContent = txt; }
 });
 
-/* ---------- TechnoStore: carrito lateral, búsqueda del header y modales ---------- */
+/* ---------- Drawer & Search ---------- */
 const openDrawer = () => { $('#drawer').classList.add('on'); $('#drawer').setAttribute('aria-hidden', 'false'); $('#scrim').hidden = false; };
 const closeDrawer = () => { $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden', 'true'); $('#scrim').hidden = true; };
 $('#navCart').onclick = openDrawer;
@@ -1458,14 +1730,13 @@ function paintDrawer() {
   if (!cart.length) { body.innerHTML = '<div class="empty">Tu carrito está vacío.</div>'; foot.innerHTML = ''; return; }
   const total = cart.reduce((s, i) => s + +i.subtotal, 0), units = cart.reduce((s, i) => s + +i.cantidad, 0);
   body.innerHTML = cart.map(i => `<div class="di">
-    <img src="${esc(i.imagen_url || 'img/default.jpg')}" alt="" ${dat(i)}>
+    <img src="${esc(i.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="" ${dat(i)}>
     <div><strong>${esc(i.nombre)}</strong><span>${money(i.precio)} c/u</span>
       <div class="qty" style="width:max-content"><button aria-label="Quitar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad - 1})">−</button><span>${+i.cantidad}</span><button aria-label="Agregar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad + 1})" ${+i.cantidad >= +i.stock ? 'disabled' : ''}>+</button></div></div>
     <b>${money(i.subtotal)}</b></div>`).join('');
   foot.innerHTML = `<div class="line tot"><span>Total (${units})</span><span>${money(total)}</span></div><button class="btn ok full" id="dGo">Ir a pagar</button>`;
   $('#dGo').onclick = () => { closeDrawer(); show('cart'); };
 }
-
 function notice(title, html, btns = [['Entendido', 'ok', () => close('mInfo')]]) {
   $('#infTitle').textContent = title; $('#infBody').innerHTML = html;
   const box = $('#infBtns'); box.innerHTML = '';
@@ -1475,10 +1746,9 @@ function notice(title, html, btns = [['Entendido', 'ok', () => close('mInfo')]])
 function confirmAdd(id) {
   const it = cart.find(i => +i.id_producto === id); if (!it) return;
   const total = cart.reduce((s, i) => s + +i.subtotal, 0);
-  notice('Añadido al carrito', `<div class="addok"><img src="${esc(it.imagen_url || 'img/default.jpg')}" alt="" ${dat(it)}><div><strong>${esc(it.nombre)}</strong><span>${+it.cantidad} en tu carrito · Total ${money(total)}</span></div></div>`,
+  notice('Añadido al carrito', `<div class="addok"><img src="${esc(it.imagen_url || 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=500')}" alt="" ${dat(it)}><div><strong>${esc(it.nombre)}</strong><span>${+it.cantidad} en tu carrito · Total ${money(total)}</span></div></div>`,
     [['Seguir comprando', 'ghost', () => close('mInfo')], ['Ver carrito', 'ok', () => { close('mInfo'); openDrawer(); }]]);
 }
-
 $('#hSearchForm').onsubmit = e => {
   e.preventDefault();
   const q = $('#hSearch').value.trim();
@@ -1504,7 +1774,7 @@ function flyToCart() {
     { duration: 600, easing: 'cubic-bezier(.45,0,.75,.4)' }).onfinish = () => c.remove();
 }
 const _paintDrawer = paintDrawer;
-paintDrawer = function () {   // pulso del contador al sumar unidades
+paintDrawer = function () {
   _paintDrawer();
   const n = cart.reduce((s, i) => s + +i.cantidad, 0);
   if (n > lastUnits) ['#cartBadge', '#navCart'].forEach(s => { const el = $(s); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
@@ -1512,7 +1782,7 @@ paintDrawer = function () {   // pulso del contador al sumar unidades
 };
 
 /* ---------- Inicio ---------- */
-async function syncSession() {   // la sesión real vive en el servidor
+async function syncSession() {
   const r = await api('sesion');
   user = r.success ? r.user : null;
   user ? localStorage.setItem('currentUser', JSON.stringify(user)) : localStorage.removeItem('currentUser');
@@ -1522,6 +1792,8 @@ async function syncSession() {   // la sesión real vive en el servidor
   await syncSession(); loadStore(); await loadCats();
   loadList('listar_catalogo');
   api('obtener_destacados').then(r => heroArt(r.success ? r.data : []));
+  
+  checkInitialTerms();
 })();
 </script>
 </body>
