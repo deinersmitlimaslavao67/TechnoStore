@@ -212,6 +212,40 @@ th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody
 .addok img{width:84px;height:64px;object-fit:cover;border-radius:8px}
 .addok div{display:grid;gap:.2rem;color:var(--mut)}.addok strong{color:var(--tx)}
 @media(max-width:860px){.bar{flex-wrap:wrap}.hsearch{order:3;max-width:none;flex-basis:100%}}
+
+/* ===== Animaciones ===== */
+@keyframes rise{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;scale:.94;translate:0 10px}to{opacity:1;scale:1;translate:0 0}}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -10px}}
+@keyframes toastIn{from{opacity:0;translate:30px 0}to{opacity:1;translate:0 0}}
+@keyframes bump{0%{scale:1}35%{scale:1.45}100%{scale:1}}
+@keyframes grid{to{background-position:48px 48px}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(90,176,255,0)}50%{box-shadow:0 0 0 6px rgba(90,176,255,.18)}}
+.hero-in>div:first-child>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.hero-in>div:first-child>:nth-child(2){animation-delay:.08s}
+.hero-in>div:first-child>:nth-child(3){animation-delay:.16s}
+.hero-in>div:first-child>:nth-child(4){animation-delay:.26s}
+.hc{animation:rise .8s cubic-bezier(.2,.7,.2,1) both,floaty 6s ease-in-out infinite}
+.hc0{animation-delay:.3s,1.1s}.hc1{animation-delay:.42s,1.5s}.hc2{animation-delay:.54s,1.9s}
+.hero::before{animation:grid 24s linear infinite}
+.view.on{animation:fadeIn .35s ease both}
+.card{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+.chip,.btn,.qty button,.x,.cartbtn{transition:background .2s,color .2s,border-color .2s,scale .15s}
+.btn:active:not(:disabled),.chip:active,.qty button:active:not(:disabled),.cartbtn:active{scale:.95}
+.hsearch input{transition:border-color .2s,box-shadow .2s}
+.hsearch input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(90,176,255,.18)}
+.modal.on{animation:fadeIn .2s ease both}
+.modal.on .mc{animation:pop .28s cubic-bezier(.2,.8,.2,1) both}
+.toast{animation:toastIn .35s cubic-bezier(.2,.8,.2,1) both}
+.di{animation:rise .4s cubic-bezier(.2,.7,.2,1) both}
+.drawer.on .di:nth-child(2){animation-delay:.05s}.drawer.on .di:nth-child(3){animation-delay:.1s}.drawer.on .di:nth-child(n+4){animation-delay:.15s}
+.scrim:not([hidden]){animation:fadeIn .25s ease both}
+.badge.bump,.cartbtn.bump{animation:bump .45s ease}
+.cartbtn.bump{animation:glow .6s ease}
+.tabs button{transition:color .2s,border-color .2s}
+tbody tr{transition:background .15s}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -774,8 +808,8 @@ function renderCatalog() {
   const list = cur.filter(p => !curCat || p.categoria === curCat).sort(
     s === 'asc' ? (a, b) => a.precio - b.precio : s === 'desc' ? (a, b) => b.precio - a.precio : s === 'name' ? (a, b) => a.nombre.localeCompare(b.nombre) : () => 0);
   $('#count').textContent = list.length + (list.length === 1 ? ' producto' : ' productos');
-  $('#productGrid').innerHTML = list.length ? list.map(p => `
-    <article class="card">
+  $('#productGrid').innerHTML = list.length ? list.map((p, ix) => `
+    <article class="card" style="--i:${Math.min(ix, 12)}">
       <div class="ph" onclick="showProduct(${+p.id_producto})">
         <img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="${esc(p.nombre)}" loading="lazy" ${dat(p)}>
         ${+p.destacado ? '<span class="tag">Destacado</span>' : ''}${+p.stock > 0 && +p.stock <= 5 ? '<span class="tag low">Últimas unidades</span>' : ''}
@@ -857,7 +891,7 @@ async function addCart(id) {
   if (!user) { toast('Inicia sesión para usar el carrito', true); return openAuth(); }
   const r = await api('agregar_carrito', { id_producto: id, cantidad: 1 }, true);
   if (!r.success) return toast(r.error, true);
-  await refreshCart(); confirmAdd(id);
+  await refreshCart(); flyToCart(); setTimeout(() => confirmAdd(id), flyDone ? 520 : 0);
 }
 async function setQty(id, n) {   // n <= 0 quita el producto
   const r = await api('actualizar_carrito', { id_producto: id, cantidad: n }, true);
@@ -1293,6 +1327,30 @@ $('#hSearchForm').onsubmit = e => {
   show('catalog'); $('#searchInput').value = q;
   loadList(q ? 'buscar_productos' : 'listar_catalogo', q ? { q } : {});
   $('#v-catalog').scrollIntoView({ behavior: 'smooth' });
+};
+
+/* ---------- Animaciones ---------- */
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lastAddBtn = null, flyDone = false, lastUnits = 0;
+document.addEventListener('click', e => { lastAddBtn = e.target.closest('button'); }, true);
+function flyToCart() {
+  flyDone = false;
+  const img = lastAddBtn && lastAddBtn.closest('.card') && lastAddBtn.closest('.card').querySelector('.ph img');
+  if (!img || reduceMotion()) return;
+  const a = img.getBoundingClientRect(), t = $('#navCart').getBoundingClientRect();
+  const c = img.cloneNode();
+  Object.assign(c.style, { position: 'fixed', left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px', objectFit: 'cover', borderRadius: '14px', zIndex: 300, pointerEvents: 'none', margin: 0 });
+  document.body.append(c); flyDone = true;
+  const dx = t.left + t.width / 2 - (a.left + a.width / 2), dy = t.top + t.height / 2 - (a.top + a.height / 2);
+  c.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx * .6}px,${dy * .5 - 40}px) scale(.45)`, opacity: .95, offset: .55 }, { transform: `translate(${dx}px,${dy}px) scale(.05)`, opacity: .2 }],
+    { duration: 600, easing: 'cubic-bezier(.45,0,.75,.4)' }).onfinish = () => c.remove();
+}
+const _paintDrawer = paintDrawer;
+paintDrawer = function () {   // pulso del contador al sumar unidades
+  _paintDrawer();
+  const n = cart.reduce((s, i) => s + +i.cantidad, 0);
+  if (n > lastUnits) ['#cartBadge', '#navCart'].forEach(s => { const el = $(s); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
+  lastUnits = n;
 };
 
 /* ---------- Inicio ---------- */
