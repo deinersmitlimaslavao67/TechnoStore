@@ -397,6 +397,7 @@ tbody tr{transition:background .15s}
   <div><i>🛒</i><p><b>Compra fácil</b><span>Carrito y pedido en 2 pasos</span></p></div>
 </div></section>
 </div>
+
 <main class="wrap">
   <!-- CATÁLOGO -->
   <section id="v-catalog" class="view on">
