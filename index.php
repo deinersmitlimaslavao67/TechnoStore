@@ -213,6 +213,33 @@ th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody
 .addok div{display:grid;gap:.2rem;color:var(--mut)}.addok strong{color:var(--tx)}
 @media(max-width:860px){.bar{flex-wrap:wrap}.hsearch{order:3;max-width:none;flex-basis:100%}}
 
+/* ===== Dinero digital ===== */
+.wallet{display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--line)!important;color:var(--acc)!important;font-weight:700!important}
+.wallet[hidden]{display:none}
+.wallet-sec{display:grid;grid-template-columns:1.2fr 1fr;gap:1.2rem;margin-bottom:1.4rem;align-items:start}
+.wbal,.wrec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.3rem}
+.wbal{background:radial-gradient(520px 220px at 100% 0,color-mix(in srgb,var(--brand) 55%,transparent),transparent),var(--card)}
+.wbal h3{margin:.6rem 0 .1rem;font-size:1rem;color:var(--mut);font-weight:500;font-family:'DM Sans',system-ui,sans-serif}
+.wbig{font-family:Sora,'DM Sans',sans-serif;font-size:clamp(1.9rem,5vw,2.6rem);font-weight:700;color:var(--acc);line-height:1.1;margin-bottom:.5rem}
+.wbig.bump{animation:bump .45s ease}
+.wrec label{font-weight:500;display:block;margin-bottom:.5rem}
+.wq{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.7rem}
+.wrow{display:flex;gap:.5rem}.wrow input{flex:1;min-width:0;padding:.55rem .8rem;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:6px}
+.wsec-t{margin:.2rem 0 .7rem;font-size:1.05rem}
+.mv{font-weight:700;white-space:nowrap}.mv.in{color:#5fe0b0}.mv.out{color:#ff8f86}
+.paybox{border-radius:10px;padding:.7rem .85rem;font-size:.88rem;margin:-.3rem 0 .9rem;border:1px solid var(--line);background:var(--card2);display:grid;gap:.25rem}
+.paybox .line{padding:.05rem 0}.paybox.ok{border-color:#1e8e5a}.paybox.low{border-color:#d64545;background:#2a1517}
+.paybox .btn{margin-top:.4rem}
+.rcpt{font-family:'DM Sans',system-ui,sans-serif}
+.rcpt-h{text-align:center;border-bottom:2px dashed var(--line);padding-bottom:.9rem;margin-bottom:.9rem}
+.rcpt-h b{display:block;font-family:Sora,sans-serif;font-size:1.15rem;color:var(--acc)}
+.rcpt-n{font-size:1.3rem;font-weight:700;letter-spacing:.05em}
+.rcpt-i{display:grid;gap:.2rem;font-size:.9rem;margin-bottom:.9rem}.rcpt-i span{color:var(--mut)}
+.rcpt-t{display:flex;justify-content:space-between;border-top:2px dashed var(--line);margin-top:.8rem;padding-top:.8rem;font-size:1.2rem;font-weight:700}
+.rcpt-w{text-align:center;font-size:.78rem;color:var(--mut);margin-top:.8rem}
+@media(max-width:860px){.wallet-sec{grid-template-columns:1fr}}
+@media print{body *{visibility:hidden}#compBody,#compBody *{visibility:visible}#compBody{position:absolute;inset:0 auto auto 0;width:100%;padding:1rem;color:#000;background:#fff}#compBody *{color:#000!important;border-color:#999!important}}
+
 /* ===== Animaciones ===== */
 @keyframes rise{from{opacity:0;translate:0 22px}to{opacity:1;translate:0 0}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -257,6 +284,7 @@ tbody tr{transition:background .15s}
     <button data-v="orders" id="navOrders" hidden>Mis pedidos</button>
     <button data-v="profile" id="navProfile" hidden>Mi perfil</button>
     <button data-v="admin" id="navAdmin" hidden>Administración</button>
+    <button type="button" id="navWallet" class="wallet" hidden aria-label="Ver mi saldo de dinero digital" title="Mi dinero digital"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16.5" cy="14" r="1.2"/></svg><span id="walletAmt">…</span></button>
     <button type="button" id="navCart" class="cartbtn" aria-label="Abrir carrito"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 7H6"/></svg>Carrito<span id="cartBadge" class="badge" hidden>0</span></button>
     <button id="navLogin">Iniciar sesión</button>
     <button id="navReg">Registrarse</button>
@@ -276,7 +304,7 @@ tbody tr{transition:background .15s}
 </div></section>
 <section class="perks"><div class="perks-in">
   <div><i>🚚</i><p><b>Envíos nacionales</b><span>Llegamos a todo el país</span></p></div>
-  <div><i>💳</i><p><b>Varios medios de pago</b><span>Tarjeta, PSE, Nequi y más</span></p></div>
+  <div><i>💳</i><p><b>Varios medios de pago</b><span>Tarjeta, PSE, Nequi o dinero digital</span></p></div>
   <div><i>📦</i><p><b>Inventario en vivo</b><span>Solo lo que hay disponible</span></p></div>
   <div><i>🛒</i><p><b>Compra fácil</b><span>Carrito y pedido en 2 pasos</span></p></div>
 </div></section>
@@ -306,6 +334,26 @@ tbody tr{transition:background .15s}
   <!-- PERFIL -->
   <section id="v-profile" class="view">
     <h2>Mi perfil</h2>
+    <section class="wallet-sec" id="walletSec" aria-labelledby="wTitle">
+      <div class="wbal">
+        <span class="eyebrow">Dinero digital · simulado</span>
+        <h3 id="wTitle">Saldo disponible</h3>
+        <div class="wbig" id="wBig" aria-live="polite">—</div>
+        <p class="sub">No es dinero real: solo sirve para pagar pedidos dentro de esta tienda.</p>
+      </div>
+      <form class="wrec" id="fRecarga">
+        <label for="wMonto">Recargar saldo</label>
+        <div class="wq" id="wQuick">
+          <button type="button" class="chip" data-m="50000">+ $50.000</button>
+          <button type="button" class="chip" data-m="200000">+ $200.000</button>
+          <button type="button" class="chip" data-m="1000000">+ $1.000.000</button>
+        </div>
+        <div class="wrow"><input id="wMonto" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="Otro monto (COP)" required><button class="btn ok" id="wBtn">Recargar</button></div>
+        <p class="sub" style="margin-top:.5rem">Máximo $10.000.000 por recarga.</p>
+      </form>
+    </section>
+    <h3 class="wsec-t">Movimientos de mi saldo</h3>
+    <div class="tw" style="margin-bottom:1.4rem"><table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Monto</th><th>Saldo final</th><th>Comprobante</th></tr></thead><tbody id="wMovs"></tbody></table></div>
     <div class="pgrid">
       <form class="tw tform" id="fPerfil">
         <h3>Mis datos</h3>
@@ -535,6 +583,12 @@ tbody tr{transition:background .15s}
   <div class="mf"><button class="btn ghost" data-close>Cerrar</button></div>
 </div></div>
 
+<!-- MODAL COMPROBANTE (dinero digital) -->
+<div class="modal" id="mComp"><div class="mc">
+  <div class="rcpt" id="compBody"></div>
+  <div class="mf"><button class="btn ghost" id="compPrint">Imprimir</button><button class="btn ghost" data-close>Cerrar</button></div>
+</div></div>
+
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="Carrito de compras" aria-hidden="true">
   <div class="dh"><h3>Tu carrito</h3><button type="button" class="x" id="dClose" aria-label="Cerrar carrito">✕</button></div>
@@ -703,6 +757,67 @@ $$('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').classList.
 $$('.modal').forEach(m => m.addEventListener('mousedown', e => { if (e.target === m) m.classList.remove('on'); }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal.on').forEach(m => m.classList.remove('on')); });
 
+/* ---------- Dinero digital (saldo simulado, NO es dinero real) ---------- */
+const PAY_DIGITAL = 'Dinero digital';   // debe coincidir con METODO_DIGITAL del backend
+const RECARGA_MAX = 10000000;           // mismo tope por recarga que el backend
+let saldo = null;                       // null = aún no se ha consultado
+const fechaCorta = f => f ? String(f).slice(0, 16).replace('T', ' ') : '';
+function paintSaldo() {
+  $('#navWallet').hidden = !user;
+  const txt = saldo === null ? '…' : money(saldo);
+  $('#walletAmt').textContent = txt;
+  $('#wBig').textContent = saldo === null ? '—' : txt;
+  if (typeof paintPayInfo === 'function') paintPayInfo();
+}
+async function refreshSaldo() {
+  if (!user) { saldo = null; paintSaldo(); return null; }
+  const r = await api('saldo_digital');
+  if (r.success) { const antes = saldo; saldo = +r.saldo; if (antes !== null && antes !== saldo) { const b = $('#wBig'); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); } }
+  paintSaldo(); return saldo;
+}
+async function recargar(monto) {
+  monto = Math.round(+monto);
+  if (!(monto > 0)) { toast('Escribe un monto válido', true); return false; }
+  if (monto > RECARGA_MAX) { toast('La recarga máxima por operación es ' + money(RECARGA_MAX), true); return false; }
+  const r = await api('recargar_saldo', { monto }, true);
+  if (!r.success) { toast(r.error || 'No se pudo recargar', true); return false; }
+  saldo = +r.saldo; paintSaldo(); toast(`Recarga de ${money(monto)} realizada`);
+  if ($('#v-profile').classList.contains('on')) loadMovs();
+  return true;
+}
+const MOV = { RECARGA: ['Recarga', 'ok', 'in'], REEMBOLSO: ['Reembolso', 'ok', 'in'], PAGO: ['Pago de pedido', 'y', 'out'] };
+async function loadMovs() {
+  const r = await api('movimientos_saldo');
+  const rows = r.success ? r.data : [];
+  $('#wMovs').innerHTML = rows.length ? rows.map(m => {
+    const [nom, pill, dir] = MOV[m.tipo] || [m.tipo, '', 'in'];
+    return `<tr><td>${esc(fechaCorta(m.fecha))}</td>
+      <td><span class="pill ${pill}">${esc(nom)}</span>${m.id_pedido ? ` <span class="sub">pedido #${+m.id_pedido}</span>` : ''}</td>
+      <td class="mv ${dir}">${dir === 'in' ? '+' : '−'}${money(m.monto)}</td><td>${money(m.saldo_posterior)}</td>
+      <td>${m.comprobante ? `<button class="btn ghost sm" onclick="verComprobante(${+m.id_pedido})">${esc(m.comprobante)}</button>` : '—'}</td></tr>`;
+  }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:2rem">Aún no tienes movimientos.</td></tr>';
+}
+async function verComprobante(idPedido) {
+  const r = await api('obtener_comprobante', { id_pedido: idPedido });
+  if (!r.success) return toast(r.error || 'No se pudo cargar el comprobante', true);
+  const c = r.data;
+  $('#compBody').innerHTML = `<div class="rcpt-h"><b>${esc($('#storeTitle').textContent)}</b><span class="sub">Comprobante de pago virtual · dinero digital</span><div class="rcpt-n">${esc(c.numero)}</div></div>
+    <div class="rcpt-i"><div><span>Cliente:</span> ${esc(c.cliente)}</div><div><span>Correo:</span> ${esc(c.correo)}</div><div><span>Pedido:</span> #${+c.id_pedido} · <span class="pill ${ESTADO[c.estado] || ''}">${esc(c.estado)}</span></div><div><span>Fecha:</span> ${esc(fechaCorta(c.fecha_emision))}</div><div><span>Método de pago:</span> ${esc(c.metodo_pago)}</div></div>
+    <div class="tw"><table style="min-width:0"><thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead><tbody>${c.items.map(i => `<tr><td>${esc(i.producto)}<div class="sub">${money(i.precio_unitario)} c/u</div></td><td>${+i.cantidad}</td><td>${money(i.subtotal)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="rcpt-t"><span>Total pagado</span><span>${money(c.monto)}</span></div>
+    <p class="rcpt-w">Documento simulado con fines académicos. No tiene validez fiscal.</p>`;
+  open('mComp');
+}
+$('#compPrint').onclick = () => window.print();
+$('#navWallet').onclick = () => show('profile');
+$('#wQuick').onclick = e => { const b = e.target.closest('[data-m]'); if (b) recargar(b.dataset.m); };
+$('#fRecarga').onsubmit = async e => {
+  e.preventDefault();
+  const btn = $('#wBtn'); btn.disabled = true;
+  if (await recargar($('#wMonto').value)) $('#fRecarga').reset();
+  btn.disabled = false;
+};
+
 /* ---------- Navegación ---------- */
 function show(v) {
   if (v === 'admin' && !(user && user.rol === 'ADMINISTRADOR')) return toast('Solo los administradores pueden entrar al panel', true);
@@ -712,7 +827,7 @@ function show(v) {
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
   $$('nav [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'orders') loadOrders();
-  if (v === 'profile') loadProfile();
+  if (v === 'profile') { loadProfile(); refreshSaldo(); loadMovs(); }
   if (v === 'cart') loadCart();
   if (v === 'admin') loadAdmin();
 }
@@ -730,6 +845,7 @@ function paintUser() {
   $('#navOrders').hidden = !user;
   $('#navProfile').hidden = !user;
   $('#navAdmin').hidden = !(user && user.rol === 'ADMINISTRADOR');
+  $('#navWallet').hidden = !user;
 }
 function authTab(t) {
   $$('#authTabs button').forEach(b => b.classList.toggle('on', b.dataset.a === t));
@@ -739,11 +855,11 @@ function openAuth(t = 'login') { authTab(t); open('mAuth'); }
 $$('#authTabs button').forEach(b => b.onclick = () => authTab(b.dataset.a));
 $('#navLogin').onclick = () => openAuth('login');
 $('#navReg').onclick = () => openAuth('reg');
-$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
+$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; saldo = null; paintSaldo(); paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
 
 function startSession(u) {
   user = u; localStorage.setItem('currentUser', JSON.stringify(u));
-  close('mAuth'); paintUser(); refreshCart(); toast(`¡Bienvenido, ${u.nombre}!`);
+  close('mAuth'); paintUser(); refreshCart(); refreshSaldo(); toast(`¡Bienvenido, ${u.nombre}!`);
 }
 async function doLogin(correo, password) {
   const r = await api('login', { correo, password }, true);
@@ -855,7 +971,7 @@ async function refreshCart() {
   }
   paintBadge();
 }
-async function loadCart() { await refreshCart(); paintCart(); }
+async function loadCart() { await Promise.all([refreshCart(), refreshSaldo()]); paintCart(); }
 function paintCart() {
   const box = $('#cartBox');
   if (!cart.length) {
@@ -882,10 +998,12 @@ function paintCart() {
     </div>
     <div class="fg"><label for="cBarrio">Barrio</label><input id="cBarrio" maxlength="100" value="${esc(cartAddress.barrio)}" required oninput="cartAddress.barrio=this.value"></div>
     <div class="fg"><label for="cDir">Dirección</label><input id="cDir" maxlength="255" value="${esc(cartAddress.direccion)}" required oninput="cartAddress.direccion=this.value"></div>
-    <div class="fg"><label for="cPay">Método de pago</label><select id="cPay" onchange="cartPay=this.value">${['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega'].map(m => `<option ${m === cartPay ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
-    <button class="btn ok full" onclick="checkout()">Confirmar pedido</button>
+    <div class="fg"><label for="cPay">Método de pago</label><select id="cPay" onchange="cartPay=this.value;paintPayInfo()">${['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega', PAY_DIGITAL].map(m => `<option ${m === cartPay ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
+    <div id="payInfo" aria-live="polite"></div>
+    <button class="btn ok full" id="bCheckout" onclick="checkout()">Confirmar pedido</button>
   </aside></div>`;
   setupAddressAutocomplete('c');
+  paintPayInfo();
 }
 async function addCart(id) {
   if (!user) { toast('Inicia sesión para usar el carrito', true); return openAuth(); }
@@ -898,15 +1016,55 @@ async function setQty(id, n) {   // n <= 0 quita el producto
   if (!r.success) toast(r.error, true); else if (n <= 0) toast('Producto quitado del carrito');
   loadCart();
 }
+/* Panel informativo cuando se elige "Dinero digital": saldo, total y saldo restante */
+function paintPayInfo() {
+  const box = $('#payInfo'), btn = $('#bCheckout');
+  if (!box || !btn) return;
+  const total = cart.reduce((s, i) => s + +i.subtotal, 0);
+  if (cartPay !== PAY_DIGITAL) { box.innerHTML = ''; btn.disabled = false; btn.textContent = 'Confirmar pedido'; return; }
+  if (saldo === null) { box.innerHTML = '<div class="paybox"><span class="sub">Consultando tu saldo…</span></div>'; btn.disabled = true; return; }
+  const falta = total - saldo;
+  if (falta > 0) {
+    box.innerHTML = `<div class="paybox low"><div class="line"><span>Tu saldo</span><b>${money(saldo)}</b></div><div class="line"><span>Total del pedido</span><b>${money(total)}</b></div><div class="line"><span>Te faltan</span><b style="color:#ff8f86">${money(falta)}</b></div><button type="button" class="btn ghost sm" onclick="recargarFalta(${falta})">Recargar lo que falta</button></div>`;
+    btn.disabled = true; btn.textContent = 'Saldo insuficiente';
+  } else {
+    box.innerHTML = `<div class="paybox ok"><div class="line"><span>Tu saldo</span><b>${money(saldo)}</b></div><div class="line"><span>Total del pedido</span><b>− ${money(total)}</b></div><div class="line"><span>Saldo después de pagar</span><b>${money(saldo - total)}</b></div></div>`;
+    btn.disabled = false; btn.textContent = `Pagar ${money(total)} con dinero digital`;
+  }
+}
+async function recargarFalta(falta) {   // redondea hacia arriba a miles y respeta el tope por recarga
+  await recargar(Math.min(RECARGA_MAX, Math.ceil(falta / 1000) * 1000));
+}
+let pagando = false;
 async function checkout() {
+  if (pagando) return;   // evita doble clic (el backend también lo bloquea)
+  const btn = $('#bCheckout'), txt = btn ? btn.textContent : '';
+  const digital = cartPay === PAY_DIGITAL, tot = cart.reduce((s, i) => s + +i.subtotal, 0);
+  pagando = true; if (btn) { btn.disabled = true; btn.textContent = digital ? 'Procesando pago…' : 'Confirmando…'; }
   const r = await api('confirmar_pedido', {
     pais_envio: cartAddress.pais.trim(), ciudad_envio: cartAddress.ciudad.trim(),
     barrio_envio: cartAddress.barrio.trim(), direccion_envio: cartAddress.direccion.trim(),
     metodo_pago: cartPay
   }, true);
-  if (!r.success) return toast(r.error, true);
-  const tot = cart.reduce((s, i) => s + +i.subtotal, 0); notice('¡Pedido confirmado!', `<p>Tu pedido <b>#${r.id_pedido}</b> por <b>${money(tot)}</b> quedó registrado. Puedes seguir su estado en “Mis pedidos”.</p>`);
-  cart = []; paintBadge(); loadList('listar_catalogo'); show('orders');
+  pagando = false;
+  if (!r.success) {
+    if (btn) { btn.disabled = false; btn.textContent = txt; }
+    if (digital && /saldo/i.test(r.error || '')) {   // saldo insuficiente: aviso claro + salida rápida
+      await refreshSaldo();
+      return notice('Saldo insuficiente', `<p>${esc(r.error)}</p><p class="sub" style="margin-top:.5rem">No se descontó nada ni se reservó stock. Recarga tu saldo o elige otro método de pago.</p>`,
+        [['Elegir otro método', 'ghost', () => close('mInfo')], ['Ir a recargar', 'ok', () => { close('mInfo'); show('profile'); }]]);
+    }
+    return toast(r.error, true);
+  }
+  cart = []; paintBadge(); loadList('listar_catalogo');
+  if (digital && r.comprobante) {
+    saldo = +r.saldo; paintSaldo();
+    notice('¡Pago realizado!', `<p>Pagaste <b>${money(tot)}</b> con dinero digital. Tu pedido <b>#${r.id_pedido}</b> quedó en estado <b>PAGADO</b>.</p><p style="margin-top:.5rem">Comprobante: <b>${esc(r.comprobante)}</b><br>Saldo restante: <b>${money(r.saldo)}</b></p>`,
+      [['Ver mis pedidos', 'ghost', () => { close('mInfo'); show('orders'); }], ['Ver comprobante', 'ok', () => { close('mInfo'); show('orders'); verComprobante(+r.id_pedido); }]]);
+  } else {
+    notice('¡Pedido confirmado!', `<p>Tu pedido <b>#${r.id_pedido}</b> por <b>${money(tot)}</b> quedó registrado. Puedes seguir su estado en “Mis pedidos”.</p>`);
+  }
+  show('orders');
 }
 
 /* ---------- Pedidos ---------- */
@@ -918,7 +1076,7 @@ async function loadOrders() {
   $('#ordersBody').innerHTML = rows.length ? rows.map(o => `
     <tr><td>#${esc(o.id_pedido)}</td><td><span class="pill ${ESTADO[o.estado] || ''}">${esc(o.estado)}</span></td><td>${esc(o.fecha_creacion)}</td>
     <td>${esc(o.metodo_pago || 'Pendiente')}</td><td>${money(o.total)}</td>
-    <td><div class="acts"><button class="btn ghost sm" onclick="orderDetail(${+o.id_pedido})">Ver detalle</button>${o.estado === 'PENDIENTE' ? `<button class="btn bad sm" onclick="askDelete('pedido',${+o.id_pedido},'')">Cancelar</button>` : ''}</div></td></tr>`).join('')
+    <td><div class="acts"><button class="btn ghost sm" onclick="orderDetail(${+o.id_pedido})">Ver detalle</button>${o.metodo_pago === PAY_DIGITAL ? `<button class="btn ghost sm" onclick="verComprobante(${+o.id_pedido})">Comprobante</button>` : ''}${o.estado === 'PENDIENTE' ? `<button class="btn bad sm" onclick="askDelete('pedido',${+o.id_pedido},'')">Cancelar</button>` : ''}</div></td></tr>`).join('')
     : '<tr><td colspan="6" style="text-align:center;color:var(--mut);padding:2rem">Aún no tienes pedidos.</td></tr>';
 }
 async function orderDetail(id) {
@@ -1358,7 +1516,7 @@ async function syncSession() {   // la sesión real vive en el servidor
   const r = await api('sesion');
   user = r.success ? r.user : null;
   user ? localStorage.setItem('currentUser', JSON.stringify(user)) : localStorage.removeItem('currentUser');
-  paintUser(); if (user) refreshCart();
+  paintUser(); if (user) { refreshCart(); refreshSaldo(); } else { saldo = null; paintSaldo(); }
 }
 (async () => {
   await syncSession(); loadStore(); await loadCats();
