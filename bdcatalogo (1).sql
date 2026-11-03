@@ -20,7 +20,10 @@ CREATE TABLE IF NOT EXISTS usuario (
   direccion       VARCHAR(255) NULL,
   rol             ENUM('ADMINISTRADOR','CLIENTE') NOT NULL DEFAULT 'CLIENTE',
   fecha_registro  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  activo          BOOLEAN      NOT NULL DEFAULT TRUE
+  activo          BOOLEAN      NOT NULL DEFAULT TRUE,
+  -- Dinero digital simulado (no es dinero real): saldo con el que se pagan los pedidos
+  saldo_digital   DECIMAL(12,2) NOT NULL DEFAULT 10000000.00,
+  CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)
 ) ENGINE=InnoDB;
 
 -- ---------- CATEGORIA ----------
@@ -90,6 +93,50 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
     FOREIGN KEY (id_producto) REFERENCES producto (id_producto)
     ON UPDATE CASCADE ON DELETE RESTRICT,
   UNIQUE KEY uq_detalle_pedido_producto (id_pedido, id_producto)
+) ENGINE=InnoDB;
+
+-- ---------- TRANSACCION_DIGITAL ----------
+-- Historial de movimientos del saldo digital (auditoría): recargas, pagos y reembolsos.
+CREATE TABLE IF NOT EXISTS transaccion_digital (
+  id_transaccion  INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario      INT           NOT NULL,
+  id_pedido       INT           NULL,          -- NULL en las recargas
+  tipo            ENUM('RECARGA','PAGO','REEMBOLSO') NOT NULL,
+  monto           DECIMAL(12,2) NOT NULL,
+  saldo_anterior  DECIMAL(12,2) NOT NULL,
+  saldo_posterior DECIMAL(12,2) NOT NULL,
+  fecha           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chk_transaccion_monto CHECK (monto > 0),
+  CONSTRAINT fk_transaccion_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_transaccion_pedido
+    FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  INDEX idx_transaccion_usuario (id_usuario),
+  INDEX idx_transaccion_pedido (id_pedido)
+) ENGINE=InnoDB;
+
+-- ---------- COMPROBANTE ----------
+-- Comprobante virtual: uno por pedido pagado con dinero digital (numero tipo COMP-000001).
+CREATE TABLE IF NOT EXISTS comprobante (
+  id_comprobante INT AUTO_INCREMENT PRIMARY KEY,
+  numero         VARCHAR(20)   NULL UNIQUE,    -- se asigna justo después del INSERT
+  id_pedido      INT           NOT NULL,
+  id_usuario     INT           NOT NULL,
+  id_transaccion INT           NOT NULL,
+  monto          DECIMAL(12,2) NOT NULL,
+  fecha_emision  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_comprobante_pedido
+    FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_comprobante_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_comprobante_transaccion
+    FOREIGN KEY (id_transaccion) REFERENCES transaccion_digital (id_transaccion)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  UNIQUE KEY uq_comprobante_pedido (id_pedido)   -- un pedido nunca se cobra dos veces
 ) ENGINE=InnoDB;
 
 -- ---------- PERSONALIZACION_TIENDA ----------
