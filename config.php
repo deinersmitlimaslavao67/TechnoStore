@@ -4,7 +4,6 @@ const DB_HOST = '127.0.0.1';
 const DB_NAME = 'catalogo_ecommerce';
 const DB_USER = 'root';
 const DB_PASS = '';
-
 function conectar(): PDO {
     return new PDO(
         'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS,

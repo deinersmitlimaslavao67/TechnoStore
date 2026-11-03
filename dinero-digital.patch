@@ -1,0 +1,239 @@
+--- a/api.php
++++ b/api.php
+@@ -94,9 +94,31 @@
+         // Pedidos ya confirmados que aún no tienen precio guardado: se les fija el precio actual del producto
+         $db->exec("UPDATE detalle_pedido d JOIN pedido pe ON pe.id_pedido = d.id_pedido JOIN producto p ON p.id_producto = d.id_producto
+                    SET d.precio_unitario = p.precio WHERE d.precio_unitario IS NULL AND pe.estado <> 'CARRITO'");
++        // Dinero digital (simulado): saldo por usuario + movimientos + comprobantes
++        if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuario' AND COLUMN_NAME = 'saldo_digital'")) {
++            try { $db->exec('ALTER TABLE usuario ADD COLUMN saldo_digital DECIMAL(12,2) NOT NULL DEFAULT 10000000.00, ADD CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)'); }
++            catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }
++        }
++        $db->exec('CREATE TABLE IF NOT EXISTS transaccion_digital (
++            id_transaccion INT AUTO_INCREMENT PRIMARY KEY, id_usuario INT NOT NULL, id_pedido INT NULL,
++            tipo ENUM(\'RECARGA\',\'PAGO\',\'REEMBOLSO\') NOT NULL, monto DECIMAL(12,2) NOT NULL,
++            saldo_anterior DECIMAL(12,2) NOT NULL, saldo_posterior DECIMAL(12,2) NOT NULL,
++            fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
++            CONSTRAINT chk_transaccion_monto CHECK (monto > 0),
++            CONSTRAINT fk_transaccion_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE RESTRICT,
++            CONSTRAINT fk_transaccion_pedido FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido) ON UPDATE CASCADE ON DELETE RESTRICT,
++            INDEX idx_transaccion_usuario (id_usuario), INDEX idx_transaccion_pedido (id_pedido)) ENGINE=InnoDB');
++        $db->exec('CREATE TABLE IF NOT EXISTS comprobante (
++            id_comprobante INT AUTO_INCREMENT PRIMARY KEY, numero VARCHAR(20) NULL UNIQUE,
++            id_pedido INT NOT NULL, id_usuario INT NOT NULL, id_transaccion INT NOT NULL,
++            monto DECIMAL(12,2) NOT NULL, fecha_emision DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
++            CONSTRAINT fk_comprobante_pedido FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido) ON UPDATE CASCADE ON DELETE RESTRICT,
++            CONSTRAINT fk_comprobante_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE RESTRICT,
++            CONSTRAINT fk_comprobante_transaccion FOREIGN KEY (id_transaccion) REFERENCES transaccion_digital (id_transaccion) ON UPDATE CASCADE ON DELETE RESTRICT,
++            UNIQUE KEY uq_comprobante_pedido (id_pedido)) ENGINE=InnoDB');
+         $_SESSION['mig_ok'] = 1;
+     } catch (PDOException $e) {
+-        fail('No se pudo actualizar la base de datos (precio histórico de pedidos): ' . $e->getMessage(), 500);
++        fail('No se pudo actualizar la base de datos: ' . $e->getMessage(), 500);
+     }
+ }
+ 
+@@ -119,6 +141,55 @@
+     return q("SELECT id_pedido FROM pedido WHERE id_usuario = ? AND estado = 'CARRITO' ORDER BY id_pedido DESC LIMIT 1", [$uid])[0]['id_pedido'] ?? null;
+ }
+ 
++// ---------- Dinero digital (saldo simulado: NO es dinero real) ----------
++const METODO_DIGITAL = 'Dinero digital';
++const RECARGA_MAX    = 10000000;   // tope por recarga
++
++// Suma o resta saldo y registra el movimiento. Úsala SOLO dentro de tx(): bloquea la fila del usuario
++// (FOR UPDATE) para que dos pagos simultáneos no puedan gastar el mismo saldo.
++// RECARGA y REEMBOLSO suman; PAGO resta. Devuelve ['id' => id_transaccion, 'saldo' => saldo final].
++function moverSaldo(int $uid, string $tipo, float $monto, ?int $idPedido = null): array {
++    global $db;
++    if (!in_array($tipo, ['RECARGA', 'PAGO', 'REEMBOLSO'], true)) throw new LogicException('Tipo de movimiento inválido');
++    $monto = round($monto, 2);
++    if ($monto <= 0) throw new RuntimeException('Monto inválido');
++    $fila = q('SELECT saldo_digital FROM usuario WHERE id_usuario = ? FOR UPDATE', [$uid])[0] ?? null;
++    if (!$fila) throw new RuntimeException('Usuario no encontrado');
++    $antes = (float)$fila['saldo_digital'];
++    $delta = $tipo === 'PAGO' ? -$monto : $monto;
++    if (round($antes + $delta, 2) < 0)
++        throw new RuntimeException('Saldo digital insuficiente: tienes $' . number_format($antes, 0, ',', '.') . ' y el pedido cuesta $' . number_format($monto, 0, ',', '.'));
++    q('UPDATE usuario SET saldo_digital = saldo_digital + ? WHERE id_usuario = ?', [$delta, $uid]);
++    $despues = (float)q('SELECT saldo_digital FROM usuario WHERE id_usuario = ?', [$uid])[0]['saldo_digital'];
++    q('INSERT INTO transaccion_digital (id_usuario, id_pedido, tipo, monto, saldo_anterior, saldo_posterior) VALUES (?,?,?,?,?,?)',
++      [$uid, $idPedido, $tipo, $monto, $antes, $despues]);
++    return ['id' => (int)$db->lastInsertId(), 'saldo' => $despues];
++}
++
++// Total del pedido con los precios ya congelados (detalle_pedido.precio_unitario)
++function totalPedido(int $idPedido): float {
++    return (float)(q('SELECT COALESCE(SUM(cantidad * precio_unitario), 0) AS t FROM detalle_pedido WHERE id_pedido = ?', [$idPedido])[0]['t'] ?? 0);
++}
++
++// Crea el comprobante virtual del pedido y devuelve su número (COMP-000001). Dentro de tx().
++function emitirComprobante(int $idPedido, int $uid, int $idTransaccion, float $monto): string {
++    global $db;
++    q('INSERT INTO comprobante (id_pedido, id_usuario, id_transaccion, monto) VALUES (?,?,?,?)', [$idPedido, $uid, $idTransaccion, $monto]);
++    $id = (int)$db->lastInsertId();
++    $numero = 'COMP-' . str_pad((string)$id, 6, '0', STR_PAD_LEFT);
++    q('UPDATE comprobante SET numero = ? WHERE id_comprobante = ?', [$numero, $id]);
++    return $numero;
++}
++
++// Si el pedido se pagó con dinero digital y todavía no se devolvió, devuelve el dinero. Dentro de tx(),
++// con la fila del pedido ya bloqueada (así un reembolso no se puede duplicar).
++function reembolsarPedido(int $idPedido): void {
++    $pago = q("SELECT id_usuario, monto FROM transaccion_digital WHERE id_pedido = ? AND tipo = 'PAGO' LIMIT 1", [$idPedido])[0] ?? null;
++    if (!$pago) return;   // no se pagó con dinero digital
++    if (q("SELECT 1 FROM transaccion_digital WHERE id_pedido = ? AND tipo = 'REEMBOLSO'", [$idPedido])) return;   // ya reembolsado
++    moverSaldo((int)$pago['id_usuario'], 'REEMBOLSO', (float)$pago['monto'], $idPedido);
++}
++
+ $in = $_POST + $_GET;
+ $a  = $in['action'] ?? '';
+ $v  = fn(string $k, $d = '') => isset($in[$k]) ? trim((string)$in[$k]) : $d;
+@@ -252,6 +323,36 @@
+             $u = needLogin();
+             if ($cid = cartId($u['id_usuario'])) q('DELETE FROM detalle_pedido WHERE id_pedido = ?', [$cid]);
+             out();
++        /* ---------- Dinero digital (saldo simulado) ---------- */
++        case 'saldo_digital':
++            $u = needLogin();
++            out(['saldo' => (float)q('SELECT saldo_digital FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0]['saldo_digital']]);
++        case 'recargar_saldo':   // el cliente se recarga a sí mismo; el administrador puede recargar a otro usuario (id_usuario)
++            $u = needLogin();
++            if (!is_numeric($v('monto'))) fail('Escribe un monto válido');
++            $monto = round((float)$v('monto'), 2);
++            if ($monto <= 0) fail('El monto debe ser mayor que cero');
++            if ($monto > RECARGA_MAX) fail('La recarga máxima por operación es $' . number_format(RECARGA_MAX, 0, ',', '.'));
++            $dest = ($u['rol'] === 'ADMINISTRADOR' && $v('id_usuario') !== '') ? (int)$v('id_usuario') : (int)$u['id_usuario'];
++            $mov = tx(fn() => moverSaldo($dest, 'RECARGA', $monto));
++            out(['saldo' => $mov['saldo'], 'message' => 'Recarga realizada']);
++        case 'movimientos_saldo':   // últimos 50 movimientos del usuario
++            $u = needLogin();
++            out(['data' => q('SELECT t.id_transaccion, t.tipo, t.monto, t.saldo_anterior, t.saldo_posterior, t.fecha, t.id_pedido, c.numero AS comprobante
++                              FROM transaccion_digital t LEFT JOIN comprobante c ON c.id_transaccion = t.id_transaccion
++                              WHERE t.id_usuario = ? ORDER BY t.id_transaccion DESC LIMIT 50', [$u['id_usuario']])]);
++        case 'obtener_comprobante':   // del propio usuario; el administrador puede ver cualquiera
++            $u = needLogin(); $id = (int)$v('id_pedido');
++            $c = q("SELECT c.numero, c.monto, c.fecha_emision, c.id_pedido, c.id_usuario, pe.metodo_pago, pe.estado,
++                           CONCAT(us.nombre, ' ', us.apellido) AS cliente, us.correo
++                    FROM comprobante c JOIN pedido pe ON pe.id_pedido = c.id_pedido JOIN usuario us ON us.id_usuario = c.id_usuario
++                    WHERE c.id_pedido = ?", [$id])[0] ?? null;
++            if (!$c || ($u['rol'] !== 'ADMINISTRADOR' && (int)$c['id_usuario'] !== (int)$u['id_usuario'])) fail('Comprobante no encontrado', 404);
++            unset($c['id_usuario']);
++            $c['items'] = q('SELECT pr.nombre AS producto, d.cantidad, d.precio_unitario, d.cantidad * d.precio_unitario AS subtotal
++                             FROM detalle_pedido d JOIN producto pr ON pr.id_producto = d.id_producto
++                             WHERE d.id_pedido = ? ORDER BY d.id_detalle', [$id]);
++            out(['data' => $c]);
+         case 'confirmar_pedido':
+             $u = needLogin(); $cid = cartId($u['id_usuario']);
+             $dir = $v('direccion_envio'); $mp = $v('metodo_pago');
+@@ -260,8 +361,12 @@
+             if (mb_strlen($dir) < 6) fail('Escribe una dirección de envío válida');
+             if ($pais === '' || $ciudad === '' || $barrio === '') fail('Completa país, ciudad y barrio');
+             foreach ([$pais, $ciudad, $barrio] as $parte) if (mb_strlen($parte) > 100) fail('País, ciudad o barrio demasiado largos');
+-            if (!in_array($mp, ['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega'], true)) fail('Elige un método de pago');
+-            tx(function () use ($cid, $dir, $pais, $ciudad, $barrio, $mp) {
++            if (!in_array($mp, ['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega', METODO_DIGITAL], true)) fail('Elige un método de pago');
++            $digital = ($mp === METODO_DIGITAL);
++            $res = tx(function () use ($cid, $dir, $pais, $ciudad, $barrio, $mp, $u, $digital) {
++                // Bloquea el pedido: si llega un doble clic, la 2.ª petición ya lo verá fuera de CARRITO y no cobrará dos veces
++                $estadoActual = q('SELECT estado FROM pedido WHERE id_pedido = ? FOR UPDATE', [$cid])[0]['estado'] ?? null;
++                if ($estadoActual !== 'CARRITO') throw new RuntimeException('Este pedido ya fue procesado');
+                 $items = q('SELECT d.id_producto, d.cantidad, p.nombre, p.stock FROM detalle_pedido d
+                             JOIN producto p ON p.id_producto = d.id_producto WHERE d.id_pedido = ? FOR UPDATE', [$cid]);
+                 if (!$items) throw new RuntimeException('Tu carrito está vacío');
+@@ -270,10 +375,16 @@
+                 foreach ($items as $i) q('UPDATE producto SET stock = stock - ? WHERE id_producto = ?', [$i['cantidad'], $i['id_producto']]);
+                 // Congela el precio de compra de cada línea
+                 q('UPDATE detalle_pedido d JOIN producto p ON p.id_producto = d.id_producto SET d.precio_unitario = p.precio WHERE d.id_pedido = ?', [$cid]);
+-                q("UPDATE pedido SET estado = 'PENDIENTE', fecha_compra = NOW(), metodo_pago = ?, direccion_envio = ?, pais_envio = ?, ciudad_envio = ?, barrio_envio = ? WHERE id_pedido = ?", [$mp, $dir, $pais, $ciudad, $barrio, $cid]);
++                // Con dinero digital el pago es inmediato: el pedido queda PAGADO; con los demás métodos queda PENDIENTE
++                q("UPDATE pedido SET estado = ?, fecha_compra = NOW(), metodo_pago = ?, direccion_envio = ?, pais_envio = ?, ciudad_envio = ?, barrio_envio = ? WHERE id_pedido = ?", [$digital ? 'PAGADO' : 'PENDIENTE', $mp, $dir, $pais, $ciudad, $barrio, $cid]);
++                if (!$digital) return [];
++                // Descuenta el saldo y emite el comprobante. Si el saldo no alcanza se deshace TODO (también el stock).
++                $total = totalPedido((int)$cid);
++                $mov = moverSaldo((int)$u['id_usuario'], 'PAGO', $total, (int)$cid);
++                return ['comprobante' => emitirComprobante((int)$cid, (int)$u['id_usuario'], $mov['id'], $total), 'saldo' => $mov['saldo']];
+             });
+             notificarPedido((int)$cid);   // correo: pedido recibido
+-            out(['id_pedido' => $cid]);
++            out(['id_pedido' => $cid] + $res);
+         case 'cancelar_pedido':   // solo pedidos PENDIENTE del propio usuario; devuelve el stock
+             $u = needLogin(); $id = (int)$v('id_pedido');
+             tx(function () use ($u, $id) {
+@@ -334,8 +445,10 @@
+                 if (!$p) throw new RuntimeException('Pedido no encontrado');
+                 if (!in_array($nuevo, $flujo[$p['estado']] ?? [], true))
+                     throw new RuntimeException("No se puede pasar un pedido de {$p['estado']} a $nuevo");
+-                if ($nuevo === 'CANCELADO')
++                if ($nuevo === 'CANCELADO') {
+                     q('UPDATE producto p JOIN detalle_pedido d ON d.id_producto = p.id_producto SET p.stock = p.stock + d.cantidad WHERE d.id_pedido = ?', [$id]);
++                    reembolsarPedido($id);   // si se pagó con dinero digital, devuelve el saldo
++                }
+                 q('UPDATE pedido SET estado = ? WHERE id_pedido = ?', [$nuevo, $id]);
+             });
+             notificarPedido($id);   // correo: avisa al cliente del nuevo estado
+--- a/bdcatalogo.sql
++++ b/bdcatalogo.sql
+@@ -20,7 +20,10 @@
+   direccion       VARCHAR(255) NULL,
+   rol             ENUM('ADMINISTRADOR','CLIENTE') NOT NULL DEFAULT 'CLIENTE',
+   fecha_registro  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-  activo          BOOLEAN      NOT NULL DEFAULT TRUE
++  activo          BOOLEAN      NOT NULL DEFAULT TRUE,
++  -- Dinero digital simulado (no es dinero real): saldo con el que se pagan los pedidos
++  saldo_digital   DECIMAL(12,2) NOT NULL DEFAULT 10000000.00,
++  CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)
+ ) ENGINE=InnoDB;
+ 
+ -- ---------- CATEGORIA ----------
+@@ -92,6 +95,50 @@
+   UNIQUE KEY uq_detalle_pedido_producto (id_pedido, id_producto)
+ ) ENGINE=InnoDB;
+ 
++-- ---------- TRANSACCION_DIGITAL ----------
++-- Historial de movimientos del saldo digital (auditoría): recargas, pagos y reembolsos.
++CREATE TABLE IF NOT EXISTS transaccion_digital (
++  id_transaccion  INT AUTO_INCREMENT PRIMARY KEY,
++  id_usuario      INT           NOT NULL,
++  id_pedido       INT           NULL,          -- NULL en las recargas
++  tipo            ENUM('RECARGA','PAGO','REEMBOLSO') NOT NULL,
++  monto           DECIMAL(12,2) NOT NULL,
++  saldo_anterior  DECIMAL(12,2) NOT NULL,
++  saldo_posterior DECIMAL(12,2) NOT NULL,
++  fecha           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  CONSTRAINT chk_transaccion_monto CHECK (monto > 0),
++  CONSTRAINT fk_transaccion_usuario
++    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
++    ON UPDATE CASCADE ON DELETE RESTRICT,
++  CONSTRAINT fk_transaccion_pedido
++    FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
++    ON UPDATE CASCADE ON DELETE RESTRICT,
++  INDEX idx_transaccion_usuario (id_usuario),
++  INDEX idx_transaccion_pedido (id_pedido)
++) ENGINE=InnoDB;
++
++-- ---------- COMPROBANTE ----------
++-- Comprobante virtual: uno por pedido pagado con dinero digital (numero tipo COMP-000001).
++CREATE TABLE IF NOT EXISTS comprobante (
++  id_comprobante INT AUTO_INCREMENT PRIMARY KEY,
++  numero         VARCHAR(20)   NULL UNIQUE,    -- se asigna justo después del INSERT
++  id_pedido      INT           NOT NULL,
++  id_usuario     INT           NOT NULL,
++  id_transaccion INT           NOT NULL,
++  monto          DECIMAL(12,2) NOT NULL,
++  fecha_emision  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  CONSTRAINT fk_comprobante_pedido
++    FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
++    ON UPDATE CASCADE ON DELETE RESTRICT,
++  CONSTRAINT fk_comprobante_usuario
++    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
++    ON UPDATE CASCADE ON DELETE RESTRICT,
++  CONSTRAINT fk_comprobante_transaccion
++    FOREIGN KEY (id_transaccion) REFERENCES transaccion_digital (id_transaccion)
++    ON UPDATE CASCADE ON DELETE RESTRICT,
++  UNIQUE KEY uq_comprobante_pedido (id_pedido)   -- un pedido nunca se cobra dos veces
++) ENGINE=InnoDB;
++
+ -- ---------- PERSONALIZACION_TIENDA ----------
+ CREATE TABLE IF NOT EXISTS personalizacion_tienda (
+   id_personalizacion  INT AUTO_INCREMENT PRIMARY KEY,
