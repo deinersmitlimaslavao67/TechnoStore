@@ -273,37 +273,6 @@ th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody
 .tabs button{transition:color .2s,border-color .2s}
 tbody tr{transition:background .15s}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-
-/* ===== Términos y condiciones + animaciones extra ===== */
-.mc.tc{max-width:760px}
-.tc-bar{position:sticky;top:0;z-index:3;height:3px;width:0;margin:-1.5rem 0 1.2rem -1.5rem;background:var(--acc);border-radius:0 3px 3px 0}
-.tc h3{font-size:1.35rem}.tc .sub{margin:.2rem 0 1rem}
-.tc details{border:1px solid var(--line);border-radius:10px;margin-bottom:.5rem;background:var(--card2);transition:border-color .2s}
-.tc details[open]{border-color:var(--acc)}
-.tc summary{cursor:pointer;padding:.7rem 1rem;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:1rem}
-.tc summary::-webkit-details-marker{display:none}
-.tc summary::after{content:"+";color:var(--acc);font-size:1.25rem;line-height:1;transition:rotate .25s}
-.tc details[open] summary::after{rotate:45deg}
-.tc-b{padding:0 1rem 1rem;color:var(--mut);font-size:.92rem;line-height:1.6}
-.tc-b p+p,.tc-b ul{margin-top:.5rem}.tc-b ul{padding-left:1.1rem}
-.tc details[open] .tc-b{animation:rise .3s cubic-bezier(.2,.7,.2,1) both}
-.tc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
-.linkbtn{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit}
-.linkbtn:hover{color:#fff}
-.terms-row{margin:.2rem 0 .8rem;border-radius:8px}
-.terms-row label{align-items:flex-start;font-size:.88rem}
-.terms-row input{margin-top:.25rem}
-@keyframes shake{20%,60%{translate:-6px 0}40%,80%{translate:6px 0}}
-.shake{animation:shake .45s ease;outline:2px solid var(--bad);outline-offset:4px}
-@keyframes wiggle{25%{rotate:-12deg}75%{rotate:12deg}}
-.perks-in div:hover i{animation:wiggle .5s ease}
-.reveal{opacity:0;translate:0 26px;transition:opacity .6s ease,translate .6s cubic-bezier(.2,.7,.2,1)}
-.reveal.in{opacity:1;translate:0 0}
-.btn.ok{position:relative;overflow:hidden}
-.btn.ok::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);translate:-120% 0;transition:translate .6s;pointer-events:none}
-.btn.ok:hover::after{translate:120% 0}
-header{transition:box-shadow .3s}header.stuck{box-shadow:0 10px 28px rgba(0,0,0,.4)}
-.foot .linkbtn{color:#b9c8d6}.foot .linkbtn:hover{color:#fff}
 </style>
 </head>
 <body>
@@ -506,7 +475,7 @@ header{transition:box-shadow .3s}header.stuck{box-shadow:0 10px 28px rgba(0,0,0,
     </div>
   </section>
 </main>
-<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><button type="button" class="linkbtn" data-terms>Términos y condiciones</button><span id="footContact"></span></div></footer>
+<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><span id="footContact"></span></div></footer>
 
 <!-- MODAL LOGIN / REGISTRO -->
 <div class="modal" id="mAuth"><div class="mc">
@@ -535,9 +504,54 @@ header{transition:box-shadow .3s}header.stuck{box-shadow:0 10px 28px rgba(0,0,0,
       <div class="fg"><label for="rCiudad">Ciudad</label><input id="rCiudad" maxlength="100" autocomplete="address-level2"></div>
     </div>
     <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
-    <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
     <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
   </form>
+</div></div>
+
+<!-- MODAL TÉRMINOS Y CONDICIONES -->
+<div class="modal" id="mTerms" role="dialog" aria-modal="true" aria-labelledby="termsTitle"><div class="mc terms">
+  <h3 id="termsTitle">Términos y Condiciones</h3>
+  <div class="terms-box" id="termsBox" tabindex="0">
+    <p><b>Última actualización:</b> noviembre de 2026</p>
+    <h4>1. Aceptación</h4>
+    <p>Al crear una cuenta o usar TechnoStore (la «Tienda») aceptas estos Términos y Condiciones. Si no estás de acuerdo, no uses la Tienda ni crees una cuenta.</p>
+    <h4>2. Cuenta de usuario</h4>
+    <ul>
+      <li>Debes ser mayor de edad (o contar con autorización de tu representante legal) y dar información veraz y actualizada.</li>
+      <li>Eres responsable de la confidencialidad de tu contraseña y de toda la actividad realizada con tu cuenta.</li>
+      <li>Puedes solicitar la eliminación de tu cuenta; la Tienda puede suspenderla si detecta uso fraudulento o contrario a estos términos.</li>
+    </ul>
+    <h4>3. Productos, precios y disponibilidad</h4>
+    <p>Los productos, precios e inventario se muestran en tiempo real y pueden cambiar sin previo aviso. Las imágenes son de referencia. Si un producto se agota antes de confirmar tu pedido, te lo informaremos.</p>
+    <h4>4. Pedidos y pagos</h4>
+    <ul>
+      <li>Un pedido se considera confirmado cuando recibes el comprobante y el correo de confirmación.</li>
+      <li>Medios de pago disponibles: tarjeta, PSE, Nequi y dinero digital.</li>
+      <li><b>Dinero digital:</b> es un saldo <b>simulado</b>, sin valor monetario real, que solo sirve para pagar pedidos dentro de la Tienda. No es retirable, transferible ni reembolsable en dinero.</li>
+    </ul>
+    <h4>5. Envíos</h4>
+    <p>Realizamos envíos a todo el país. Los tiempos de entrega son estimados y dependen de la ciudad de destino y de la transportadora. Debes indicar una dirección de entrega correcta y completa.</p>
+    <h4>6. Cancelaciones, retracto y garantía</h4>
+    <ul>
+      <li>Puedes cancelar un pedido desde «Mis pedidos» mientras no haya sido despachado; el stock se devuelve al inventario.</li>
+      <li>Conforme a la Ley 1480 de 2011 (Estatuto del Consumidor), en compras a distancia tienes derecho de retracto dentro de los cinco (5) días hábiles siguientes a la entrega, con el producto sin uso y en su empaque original.</li>
+      <li>Los productos cuentan con la garantía legal y la del fabricante, según corresponda.</li>
+    </ul>
+    <h4>7. Protección de datos personales</h4>
+    <p>Tratamos tus datos (nombre, correo, teléfono, dirección y datos de compra) para gestionar tu cuenta, procesar pedidos, enviarte notificaciones y mejorar el servicio, de acuerdo con la Ley 1581 de 2012 y sus normas reglamentarias. Tienes derecho a conocer, actualizar, rectificar y suprimir tus datos, y a revocar tu autorización, escribiendo al contacto de la Tienda. No vendemos tus datos a terceros.</p>
+    <h4>8. Uso adecuado</h4>
+    <p>Está prohibido intentar vulnerar la seguridad de la Tienda, usar datos de otras personas, publicar contenido ilícito o realizar compras fraudulentas.</p>
+    <h4>9. Propiedad intelectual</h4>
+    <p>Los logotipos, textos, diseños e imágenes de la Tienda son de su titular o de sus licenciantes y no pueden reproducirse sin autorización.</p>
+    <h4>10. Limitación de responsabilidad</h4>
+    <p>La Tienda no responde por interrupciones del servicio ajenas a su control ni por daños derivados del uso indebido de los productos. Nada de lo aquí dispuesto limita los derechos irrenunciables del consumidor.</p>
+    <h4>11. Cambios y ley aplicable</h4>
+    <p>Podemos modificar estos términos; la versión vigente será la publicada en la Tienda. Se rigen por las leyes de la República de Colombia.</p>
+    <h4>12. Contacto</h4>
+    <p>Para dudas, reclamos o ejercer tus derechos sobre tus datos, usa la información de contacto que aparece al pie de la página.</p>
+  </div>
+  <p class="terms-hint" id="termsHint">Desplázate hasta el final para poder aceptar.</p>
+  <div class="mf"><button type="button" class="btn ghost" id="termsClose">Cerrar</button><button type="button" class="btn ok" id="termsAccept" disabled>Aceptar y continuar</button></div>
 </div></div>
 
 <!-- MODAL PRODUCTO (crear / editar) -->
@@ -646,6 +660,7 @@ header{transition:box-shadow .3s}header.stuck{box-shadow:0 10px 28px rgba(0,0,0,
 </div></div>
 
 <div id="toasts" aria-live="polite"></div>
+<div id="loader" role="status" aria-live="polite" aria-hidden="true"><div class="lbox"><div class="spinner"></div><span id="loaderMsg">Cargando…</span></div></div>
 
 <script>
 /* ---------- Utilidades ---------- */
@@ -686,8 +701,38 @@ function toast(msg, err) {
   setTimeout(() => t.remove(), 3500);
 }
 
+/* ---------- Cargando: círculo giratorio global ---------- */
+const Loader = (() => {
+  let n = 0, timer = null, shownAt = 0;
+  const box = () => $('#loader');
+  const paint = on => { box().classList.toggle('on', on); box().setAttribute('aria-hidden', on ? 'false' : 'true'); };
+  return {
+    start(msg, delay = 150) {            // delay: evita parpadeos si la carga es rápida
+      if (msg) $('#loaderMsg').textContent = msg;
+      if (++n === 1) timer = setTimeout(() => { shownAt = Date.now(); paint(true); }, delay);
+    },
+    stop() {
+      if (n > 0) n--;
+      if (n > 0) return;
+      clearTimeout(timer);
+      if (box().classList.contains('on'))   // una vez visible, se queda al menos 300 ms
+        setTimeout(() => { if (n === 0) { paint(false); $('#loaderMsg').textContent = 'Cargando…'; } }, Math.max(0, 300 - (Date.now() - shownAt)));
+    },
+    async track(p, msg, delay = 0) { this.start(msg, delay); try { return await p; } finally { this.stop(); } }
+  };
+})();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+/* Botón con círculo giratorio mientras dura una promesa */
+async function busy(btn, p) {
+  if (btn) { btn.classList.add('loading'); btn.disabled = true; }
+  try { return await p; } finally { if (btn) { btn.classList.remove('loading'); btn.disabled = false; } }
+}
+
 /* Cliente API: GET para lecturas, POST (FormData) para escrituras */
+const API_SILENT = new Set(['obtener_ciudades', 'sesion']);   // sin spinner (autocompletado / verificación)
 async function api(action, params = {}, post = false) {
+  const spin = !API_SILENT.has(action);
+  if (spin) Loader.start(null, 250);     // solo aparece si la respuesta tarda más de 250 ms
   try {
     let res;
     if (post) {
@@ -701,6 +746,8 @@ async function api(action, params = {}, post = false) {
     return await res.json();
   } catch (e) {
     return { success: false, error: 'No se pudo conectar con el servidor.' };
+  } finally {
+    if (spin) Loader.stop();
   }
 }
 let countryOptions = null;
@@ -876,10 +923,12 @@ function show(v) {
   scrollTo(0, 0);
   $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
   $$('nav [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  if (v === 'orders') loadOrders();
-  if (v === 'profile') { loadProfile(); refreshSaldo(); loadMovs(); }
-  if (v === 'cart') loadCart();
-  if (v === 'admin') loadAdmin();
+  const jobs = [sleep(250)];             // el círculo se ve al menos un instante al cambiar de sección
+  if (v === 'orders') jobs.push(loadOrders());
+  if (v === 'profile') jobs.push(loadProfile(), refreshSaldo(), loadMovs());
+  if (v === 'cart') jobs.push(loadCart());
+  if (v === 'admin') jobs.push(loadAdmin());
+  Loader.track(Promise.all(jobs), 'Cargando…', 0);
 }
 $$('nav [data-v]').forEach(b => b.onclick = () => show(b.dataset.v));
 $$('.tabs [data-t]').forEach(b => b.onclick = () => {
@@ -912,25 +961,49 @@ function startSession(u) {
   close('mAuth'); paintUser(); refreshCart(); refreshSaldo(); toast(`¡Bienvenido, ${u.nombre}!`);
 }
 async function doLogin(correo, password) {
-  const r = await api('login', { correo, password }, true);
+  const r = await Loader.track(api('login', { correo, password }, true), 'Iniciando sesión…');
   if (!r.success) { toast(r.error || 'Correo o contraseña incorrectos', true); return false; }
   startSession(r.user); return true;
 }
-$('#fAuth').onsubmit = e => { e.preventDefault(); doLogin($('#lEmail').value.trim(), $('#lPass').value); };
+$('#fAuth').onsubmit = e => {
+  e.preventDefault();
+  busy($('#fAuth button:not([data-close])'), doLogin($('#lEmail').value.trim(), $('#lPass').value));
+};
 $('#fReg').onsubmit = async e => {
   e.preventDefault();
   if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
+  if (!$('#rTerms').checked) { toast('Debes leer y aceptar los términos y condiciones', true); return openTerms(true); }
   const correo = $('#rEmail').value.trim(), password = $('#rPass').value;
-  const r = await api('registrar', {
+  const btn = $('#fReg button:not([data-close])');
+  const r = await busy(btn, Loader.track(api('registrar', {
     nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
     telefono: $('#rTel').value.trim(), pais: $('#rPais').value.trim(), ciudad: $('#rCiudad').value.trim(),
-    barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim()
-  }, true);
+    barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim(), terminos: 1
+  }, true), 'Creando tu cuenta…'));
   if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
   $('#fReg').reset();
   toast('Cuenta creada');
   r.user ? startSession(r.user) : doLogin(correo, password);
 };
+
+/* ---------- Términos y condiciones ---------- */
+function termsEnd() {                      // ¿llegó al final del texto?
+  const b = $('#termsBox');
+  if (b.scrollTop + b.clientHeight >= b.scrollHeight - 8) { $('#termsAccept').disabled = false; $('#termsHint').hidden = true; }
+}
+function openTerms(forReg = false) {       // forReg: viene del registro → debe leer hasta el final para aceptar
+  const b = $('#termsBox'); b.scrollTop = 0;
+  $('#termsAccept').hidden = !forReg; $('#termsAccept').disabled = true;
+  $('#termsHint').hidden = !forReg;
+  $('#termsClose').textContent = forReg ? 'Cancelar' : 'Cerrar';
+  open('mTerms'); termsEnd(); b.focus();
+}
+$('#termsBox').onscroll = termsEnd;
+$('#termsClose').onclick = () => close('mTerms');
+$('#termsAccept').onclick = () => { $('#rTerms').checked = true; close('mTerms'); toast('Términos y condiciones aceptados'); };
+$('#lnkTerms').onclick = () => openTerms(true);
+$('#footTerms').onclick = () => openTerms(false);
+$('#rTerms').onclick = e => { if (e.target.checked) { e.preventDefault(); openTerms(true); } };   // para marcarla hay que leer
 
 /* ---------- Catálogo público ---------- */
 const isHex = h => /^#[0-9a-fA-F]{6}$/.test(h || '');
@@ -1608,8 +1681,11 @@ async function syncSession() {   // la sesión real vive en el servidor
   paintUser(); if (user) { refreshCart(); refreshSaldo(); } else { saldo = null; paintSaldo(); }
 }
 (async () => {
-  await syncSession(); loadStore(); await loadCats();
-  loadList('listar_catalogo');
+  Loader.start('Cargando tienda…', 0);
+  try {
+    await syncSession(); loadStore(); await loadCats();
+    await loadList('listar_catalogo');
+  } finally { Loader.stop(); }
   api('obtener_destacados').then(r => heroArt(r.success ? r.data : []));
 })();
 </script>
