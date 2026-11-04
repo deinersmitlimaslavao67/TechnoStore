@@ -261,6 +261,7 @@ try {
             if (mb_strlen($v('telefono')) > 20 || mb_strlen($v('direccion')) > 255) fail('Teléfono o dirección demasiado largos');
             foreach ([$v('pais'), $v('ciudad'), $v('barrio')] as $parte) if (mb_strlen($parte) > 100) fail('País, ciudad o barrio demasiado largos');
             if (strlen($v('password')) < 6) fail('La contraseña debe tener al menos 6 caracteres');
+            if ($v('terminos') !== '1') fail('Debes aceptar los términos y condiciones para crear tu cuenta');
             $id = q('CALL sp_registrar_usuario(?,?,?,?,?,?)', [
                 $v('nombre'), $v('apellido'), $v('correo'),
                 password_hash($v('password'), PASSWORD_DEFAULT), $v('telefono') ?: null, $v('direccion') ?: null
