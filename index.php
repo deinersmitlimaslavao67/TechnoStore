@@ -273,6 +273,53 @@ th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody
 .tabs button{transition:color .2s,border-color .2s}
 tbody tr{transition:background .15s}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ===== Términos y condiciones + animaciones extra ===== */
+.mc.tc{max-width:760px}
+.tc-bar{position:sticky;top:0;z-index:3;height:3px;width:0;margin:-1.5rem 0 1.2rem -1.5rem;background:var(--acc);border-radius:0 3px 3px 0}
+.tc h3{font-size:1.35rem}.tc .sub{margin:.2rem 0 1rem}
+.tc details{border:1px solid var(--line);border-radius:10px;margin-bottom:.5rem;background:var(--card2);transition:border-color .2s}
+.tc details[open]{border-color:var(--acc)}
+.tc summary{cursor:pointer;padding:.7rem 1rem;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:1rem}
+.tc summary::-webkit-details-marker{display:none}
+.tc summary::after{content:"+";color:var(--acc);font-size:1.25rem;line-height:1;transition:rotate .25s}
+.tc details[open] summary::after{rotate:45deg}
+.tc-b{padding:0 1rem 1rem;color:var(--mut);font-size:.92rem;line-height:1.6}
+.tc-b p+p,.tc-b ul{margin-top:.5rem}.tc-b ul{padding-left:1.1rem}
+.tc details[open] .tc-b{animation:rise .3s cubic-bezier(.2,.7,.2,1) both}
+.tc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.linkbtn{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit}
+.linkbtn:hover{color:#fff}
+.terms-row{margin:.2rem 0 .8rem;border-radius:8px}
+.terms-row label{align-items:flex-start;font-size:.88rem}
+.terms-row input{margin-top:.25rem}
+@keyframes shake{20%,60%{translate:-6px 0}40%,80%{translate:6px 0}}
+.shake{animation:shake .45s ease;outline:2px solid var(--bad);outline-offset:4px}
+@keyframes wiggle{25%{rotate:-12deg}75%{rotate:12deg}}
+.perks-in div:hover i{animation:wiggle .5s ease}
+.reveal{opacity:0;translate:0 26px;transition:opacity .6s ease,translate .6s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;translate:0 0}
+.btn.ok{position:relative;overflow:hidden}
+.btn.ok::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);translate:-120% 0;transition:translate .6s;pointer-events:none}
+.btn.ok:hover::after{translate:120% 0}
+header{transition:box-shadow .3s}header.stuck{box-shadow:0 10px 28px rgba(0,0,0,.4)}
+.foot .linkbtn{color:#b9c8d6}.foot .linkbtn:hover{color:#fff}
+
+/* ===== Overlay de sesión (carga + confirmación) ===== */
+.authfx{position:fixed;inset:0;z-index:400;display:grid;place-items:center;background:rgba(3,6,12,.72);backdrop-filter:blur(6px);animation:fadeIn .2s ease both}
+.authfx[hidden]{display:none}
+.afx-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:2rem 2.4rem;text-align:center;min-width:260px;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:pop .3s cubic-bezier(.2,.8,.2,1) both}
+.afx-icon{width:72px;height:72px;margin:0 auto 1rem;position:relative}
+.afx-spin{position:absolute;inset:0;border-radius:50%;border:5px solid var(--line);border-top-color:var(--acc);animation:afxSpin .8s linear infinite}
+.afx-ok{position:absolute;inset:0;display:none}
+.afx-ok circle{fill:none;stroke:#22c58b;stroke-width:5;stroke-dasharray:190;stroke-dashoffset:190;animation:afxDraw .5s ease forwards}
+.afx-ok path{fill:none;stroke:#22c58b;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:afxDraw .35s .4s ease forwards}
+.authfx.done .afx-spin{display:none}
+.authfx.done .afx-ok{display:block}
+.afx-txt{font-family:Sora,'DM Sans',sans-serif;font-weight:600;font-size:1.1rem}
+.afx-sub{color:var(--mut);font-size:.88rem;margin-top:.2rem}
+@keyframes afxSpin{to{rotate:360deg}}
+@keyframes afxDraw{to{stroke-dashoffset:0}}
 </style>
 </head>
 <body>
@@ -475,7 +522,15 @@ tbody tr{transition:background .15s}
     </div>
   </section>
 </main>
+<<<<<<< HEAD
 <footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><span id="footContact"></span></div></footer>
+=======
+<<<<<<< HEAD
+<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><button type="button" class="linkbtn" data-terms>Términos y condiciones</button><span id="footContact"></span></div></footer>
+=======
+<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país · <a href="#" id="btnFooterTerms" style="color:var(--acc);text-decoration:underline">Términos y Condiciones</a></span><span id="footContact"></span></div></footer>
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
 
 <!-- MODAL LOGIN / REGISTRO -->
 <div class="modal" id="mAuth"><div class="mc">
@@ -504,7 +559,25 @@ tbody tr{transition:background .15s}
       <div class="fg"><label for="rCiudad">Ciudad</label><input id="rCiudad" maxlength="100" autocomplete="address-level2"></div>
     </div>
     <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
+<<<<<<< HEAD
     <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
+=======
+<<<<<<< HEAD
+    <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
+    <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
+=======
+    
+    <!-- Términos y Condiciones dentro de Registro -->
+    <div class="fg chk" style="margin-top:1rem;background:var(--card2);padding:.8rem;border-radius:8px;border:1px solid var(--line)">
+      <label>
+        <input type="checkbox" id="chkTerms" required>
+        <span style="font-size:.85rem">Acepto los <a href="#" id="btnShowTerms" style="color:var(--acc);text-decoration:underline">Términos y Condiciones</a> y la Política de Tratamiento de Datos.</span>
+      </label>
+    </div>
+
+    <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok" id="btnSubmitReg" disabled>Crear cuenta</button></div>
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
   </form>
 </div></div>
 
@@ -659,6 +732,21 @@ tbody tr{transition:background .15s}
 <div class="mf"><button type="button" class="btn ghost" data-close>Cerrar</button><button type="button" class="btn ok" id="tcAccept">Aceptar y continuar</button></div>
 </div></div>
 
+<<<<<<< HEAD
+=======
+<!-- OVERLAY DE SESIÓN (carga + confirmación) -->
+<div class="authfx" id="authFx" role="status" aria-live="polite" hidden>
+  <div class="afx-card">
+    <div class="afx-icon">
+      <div class="afx-spin"></div>
+      <svg class="afx-ok" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M23 37l9 9 17-19"/></svg>
+    </div>
+    <div class="afx-txt" id="afxTxt"></div>
+    <div class="afx-sub" id="afxSub"></div>
+  </div>
+</div>
+
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
 <div id="toasts" aria-live="polite"></div>
 <div id="loader" role="status" aria-live="polite" aria-hidden="true"><div class="lbox"><div class="spinner"></div><span id="loaderMsg">Cargando…</span></div></div>
 
@@ -701,6 +789,7 @@ function toast(msg, err) {
   setTimeout(() => t.remove(), 3500);
 }
 
+<<<<<<< HEAD
 /* ---------- Cargando: círculo giratorio global ---------- */
 const Loader = (() => {
   let n = 0, timer = null, shownAt = 0;
@@ -730,6 +819,29 @@ async function busy(btn, p) {
 
 /* Cliente API: GET para lecturas, POST (FormData) para escrituras */
 const API_SILENT = new Set(['obtener_ciudades', 'sesion']);   // sin spinner (autocompletado / verificación)
+=======
+<<<<<<< HEAD
+/* ---------- Overlay de sesión ---------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function fxLoading(txt, sub = 'Un momento por favor…') {
+  const f = $('#authFx'); f.classList.remove('done');
+  $('#afxTxt').textContent = txt; $('#afxSub').textContent = sub; f.hidden = false;
+}
+async function fxDone(txt, sub = '') {
+  const f = $('#authFx');
+  if (f.hidden) f.hidden = false;
+  f.classList.remove('done'); void f.offsetWidth;   // reinicia la animación del check
+  f.classList.add('done');
+  $('#afxTxt').textContent = txt; $('#afxSub').textContent = sub;
+  await sleep(1500);
+  f.hidden = true; f.classList.remove('done');
+}
+const fxHide = () => { const f = $('#authFx'); f.hidden = true; f.classList.remove('done'); };
+
+/* Cliente API: GET para lecturas, POST (FormData) para escrituras */
+=======
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
 async function api(action, params = {}, post = false) {
   const spin = !API_SILENT.has(action);
   if (spin) Loader.start(null, 250);     // solo aparece si la respuesta tarda más de 250 ms
@@ -954,16 +1066,83 @@ function openAuth(t = 'login') { authTab(t); open('mAuth'); }
 $$('#authTabs button').forEach(b => b.onclick = () => authTab(b.dataset.a));
 $('#navLogin').onclick = () => openAuth('login');
 $('#navReg').onclick = () => openAuth('reg');
+<<<<<<< HEAD
 $('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; saldo = null; paintSaldo(); paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
 
 function startSession(u) {
   user = u; localStorage.setItem('currentUser', JSON.stringify(u));
   close('mAuth'); paintUser(); refreshCart(); refreshSaldo(); toast(`¡Bienvenido, ${u.nombre}!`);
+=======
+<<<<<<< HEAD
+$('#navLogout').onclick = async () => {
+  fxLoading('Cerrando sesión…');
+  await Promise.all([api('logout', {}, true), sleep(900)]);
+  user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; saldo = null;
+  paintSaldo(); paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog');
+  await fxDone('Sesión cerrada', '¡Hasta pronto!');
+=======
+
+$('#navLogout').onclick = () => {
+  runActionFlow(
+    "Cerrando sesión…",
+    "Guardando tu información de forma segura.",
+    "Sesión cerrada",
+    "¡Esperamos verte pronto!",
+    async () => {
+      await api('logout', {}, true);
+      user = null; cart = []; 
+      cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; 
+      paintBadge(); 
+      localStorage.removeItem('currentUser'); 
+      paintUser(); 
+      show('catalog'); 
+      return true;
+    }
+  );
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+};
+
+async function startSession(u) {
+  user = u; localStorage.setItem('currentUser', JSON.stringify(u));
+<<<<<<< HEAD
+  close('mAuth'); paintUser(); refreshCart(); refreshSaldo();
+  await fxDone('¡Sesión iniciada!', `Bienvenido, ${u.nombre}`);
+=======
+  close('mAuth'); paintUser(); refreshCart();
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
 }
 async function doLogin(correo, password) {
+<<<<<<< HEAD
   const r = await Loader.track(api('login', { correo, password }, true), 'Iniciando sesión…');
   if (!r.success) { toast(r.error || 'Correo o contraseña incorrectos', true); return false; }
   startSession(r.user); return true;
+=======
+<<<<<<< HEAD
+  fxLoading('Iniciando sesión…', 'Verificando tus datos');
+  const [r] = await Promise.all([api('login', { correo, password }, true), sleep(900)]);
+  if (!r.success) { fxHide(); toast(r.error || 'Correo o contraseña incorrectos', true); return false; }
+  await startSession(r.user); return true;
+=======
+  let loginUser = null;
+  runActionFlow(
+    "Iniciando sesión…",
+    "Comprobando credenciales de acceso.",
+    "¡Bienvenido de nuevo!",
+    "Acceso concedido con éxito.",
+    async () => {
+      const r = await api('login', { correo, password }, true);
+      if (!r.success) { 
+        toast(r.error || 'Correo o contraseña incorrectos', true); 
+        return false; 
+      }
+      loginUser = r.user;
+      startSession(loginUser);
+      return true;
+    }
+  );
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
 }
 $('#fAuth').onsubmit = e => {
   e.preventDefault();
@@ -974,6 +1153,7 @@ $('#fReg').onsubmit = async e => {
   if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
   if (!$('#rTerms').checked) { toast('Debes leer y aceptar los términos y condiciones', true); return openTerms(true); }
   const correo = $('#rEmail').value.trim(), password = $('#rPass').value;
+<<<<<<< HEAD
   const btn = $('#fReg button:not([data-close])');
   const r = await busy(btn, Loader.track(api('registrar', {
     nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
@@ -984,6 +1164,43 @@ $('#fReg').onsubmit = async e => {
   $('#fReg').reset();
   toast('Cuenta creada');
   r.user ? startSession(r.user) : doLogin(correo, password);
+=======
+<<<<<<< HEAD
+  const r = await api('registrar', {
+    nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
+    telefono: $('#rTel').value.trim(), pais: $('#rPais').value.trim(), ciudad: $('#rCiudad').value.trim(),
+    barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim()
+  }, true);
+  if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
+  $('#fReg').reset();
+  r.user ? await startSession(r.user) : await doLogin(correo, password);
+=======
+  
+  runActionFlow(
+    "Creando tu cuenta…",
+    "Registrando la información en el sistema.",
+    "¡Cuenta creada!",
+    "Tu perfil ha sido registrado correctamente.",
+    async () => {
+      const r = await api('registrar', {
+        nombre: $('#rNom').value.trim(), apellido: $('#rApe').value.trim(), correo, password,
+        telefono: $('#rTel').value.trim(), pais: $('#rPais').value.trim(), ciudad: $('#rCiudad').value.trim(),
+        barrio: $('#rBarrio').value.trim(), direccion: $('#rDir').value.trim()
+      }, true);
+      
+      if (!r.success) {
+        toast(r.error || 'No se pudo crear la cuenta', true);
+        return false;
+      }
+      $('#fReg').reset();
+      chkTerms.checked = false;
+      btnSubmitReg.disabled = true;
+      if (r.user) startSession(r.user);
+      return true;
+    }
+  );
+>>>>>>> f4d5a969e7737d6546d525e8cd7dc68501499691
+>>>>>>> 29f6c4f36158eda83b5be6e67a7374130b367fbc
 };
 
 /* ---------- Términos y condiciones ---------- */
