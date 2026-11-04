@@ -273,6 +273,53 @@ th{background:var(--card2);color:var(--mut)}th,td{border-color:var(--line)}tbody
 .tabs button{transition:color .2s,border-color .2s}
 tbody tr{transition:background .15s}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ===== Términos y condiciones + animaciones extra ===== */
+.mc.tc{max-width:760px}
+.tc-bar{position:sticky;top:0;z-index:3;height:3px;width:0;margin:-1.5rem 0 1.2rem -1.5rem;background:var(--acc);border-radius:0 3px 3px 0}
+.tc h3{font-size:1.35rem}.tc .sub{margin:.2rem 0 1rem}
+.tc details{border:1px solid var(--line);border-radius:10px;margin-bottom:.5rem;background:var(--card2);transition:border-color .2s}
+.tc details[open]{border-color:var(--acc)}
+.tc summary{cursor:pointer;padding:.7rem 1rem;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:1rem}
+.tc summary::-webkit-details-marker{display:none}
+.tc summary::after{content:"+";color:var(--acc);font-size:1.25rem;line-height:1;transition:rotate .25s}
+.tc details[open] summary::after{rotate:45deg}
+.tc-b{padding:0 1rem 1rem;color:var(--mut);font-size:.92rem;line-height:1.6}
+.tc-b p+p,.tc-b ul{margin-top:.5rem}.tc-b ul{padding-left:1.1rem}
+.tc details[open] .tc-b{animation:rise .3s cubic-bezier(.2,.7,.2,1) both}
+.tc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.linkbtn{background:none;border:0;padding:0;color:var(--acc);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit}
+.linkbtn:hover{color:#fff}
+.terms-row{margin:.2rem 0 .8rem;border-radius:8px}
+.terms-row label{align-items:flex-start;font-size:.88rem}
+.terms-row input{margin-top:.25rem}
+@keyframes shake{20%,60%{translate:-6px 0}40%,80%{translate:6px 0}}
+.shake{animation:shake .45s ease;outline:2px solid var(--bad);outline-offset:4px}
+@keyframes wiggle{25%{rotate:-12deg}75%{rotate:12deg}}
+.perks-in div:hover i{animation:wiggle .5s ease}
+.reveal{opacity:0;translate:0 26px;transition:opacity .6s ease,translate .6s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;translate:0 0}
+.btn.ok{position:relative;overflow:hidden}
+.btn.ok::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);translate:-120% 0;transition:translate .6s;pointer-events:none}
+.btn.ok:hover::after{translate:120% 0}
+header{transition:box-shadow .3s}header.stuck{box-shadow:0 10px 28px rgba(0,0,0,.4)}
+.foot .linkbtn{color:#b9c8d6}.foot .linkbtn:hover{color:#fff}
+
+/* ===== Overlay de sesión (carga + confirmación) ===== */
+.authfx{position:fixed;inset:0;z-index:400;display:grid;place-items:center;background:rgba(3,6,12,.72);backdrop-filter:blur(6px);animation:fadeIn .2s ease both}
+.authfx[hidden]{display:none}
+.afx-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:2rem 2.4rem;text-align:center;min-width:260px;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:pop .3s cubic-bezier(.2,.8,.2,1) both}
+.afx-icon{width:72px;height:72px;margin:0 auto 1rem;position:relative}
+.afx-spin{position:absolute;inset:0;border-radius:50%;border:5px solid var(--line);border-top-color:var(--acc);animation:afxSpin .8s linear infinite}
+.afx-ok{position:absolute;inset:0;display:none}
+.afx-ok circle{fill:none;stroke:#22c58b;stroke-width:5;stroke-dasharray:190;stroke-dashoffset:190;animation:afxDraw .5s ease forwards}
+.afx-ok path{fill:none;stroke:#22c58b;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:afxDraw .35s .4s ease forwards}
+.authfx.done .afx-spin{display:none}
+.authfx.done .afx-ok{display:block}
+.afx-txt{font-family:Sora,'DM Sans',sans-serif;font-weight:600;font-size:1.1rem}
+.afx-sub{color:var(--mut);font-size:.88rem;margin-top:.2rem}
+@keyframes afxSpin{to{rotate:360deg}}
+@keyframes afxDraw{to{stroke-dashoffset:0}}
 </style>
 </head>
 <body>
@@ -475,7 +522,7 @@ tbody tr{transition:background .15s}
     </div>
   </section>
 </main>
-<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><span id="footContact"></span></div></footer>
+<footer class="foot"><div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><button type="button" class="linkbtn" data-terms>Términos y condiciones</button><span id="footContact"></span></div></footer>
 
 <!-- MODAL LOGIN / REGISTRO -->
 <div class="modal" id="mAuth"><div class="mc">
@@ -504,6 +551,7 @@ tbody tr{transition:background .15s}
       <div class="fg"><label for="rCiudad">Ciudad</label><input id="rCiudad" maxlength="100" autocomplete="address-level2"></div>
     </div>
     <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
+    <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
     <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
   </form>
 </div></div>
@@ -595,6 +643,36 @@ tbody tr{transition:background .15s}
   <div class="db" id="dBody"></div><div class="df" id="dFoot"></div>
 </aside>
 <div class="modal" id="mInfo"><div class="mc"><h3 id="infTitle"></h3><div id="infBody"></div><div class="mf" id="infBtns"></div></div></div>
+<!-- MODAL TÉRMINOS Y CONDICIONES -->
+<div class="modal" id="mTerms"><div class="mc tc" role="dialog" aria-labelledby="tcTitle">
+<div class="tc-bar" id="tcBar"></div>
+<div class="tc-top"><div><h3 id="tcTitle">Términos y condiciones</h3><p class="sub">Última actualización: noviembre de 2026</p></div><button type="button" class="btn ghost sm" id="tcAll">Expandir todo</button></div>
+<details><summary>1. Aceptación</summary><div class="tc-b"><p>Al crear una cuenta, navegar o comprar en esta tienda aceptas estos términos. Si no estás de acuerdo, no uses el servicio. Podemos actualizarlos; la versión vigente es la publicada en esta página.</p></div></details>
+<details><summary>2. Tu cuenta</summary><div class="tc-b"><ul><li>Debes ser mayor de edad y tener capacidad legal para contratar.</li><li>Los datos que registres deben ser reales y estar actualizados.</li><li>Eres responsable de tu contraseña y de lo que se haga con tu cuenta. Avísanos si detectas un uso no autorizado.</li><li>Podemos suspender cuentas con datos falsos o uso fraudulento.</li></ul></div></details>
+<details><summary>3. Productos, precios y disponibilidad</summary><div class="tc-b"><p>Los precios están en pesos colombianos (COP). El inventario se muestra en tiempo real y se descuenta cuando confirmas el pedido. Las imágenes son ilustrativas. Si un producto tiene un error evidente de precio o de stock, podemos cancelar el pedido y devolverte lo pagado.</p></div></details>
+<details><summary>4. Pedidos y su estado</summary><div class="tc-b"><p>Al confirmar el pedido se crea en estado <b>Pendiente</b>. Luego pasa por <b>Pagado</b>, <b>Enviado</b> y <b>Entregado</b>, o termina en <b>Cancelado</b>. Te notificamos los cambios al correo registrado y puedes verlos en “Mis pedidos”. Antes de confirmar revisa productos, cantidades, dirección y método de pago.</p></div></details>
+<details><summary>5. Métodos de pago</summary><div class="tc-b"><p>Puedes pagar con tarjeta de crédito, PSE, Nequi, contraentrega o dinero digital.</p><p><b>Dinero digital:</b> es un saldo interno de la tienda, simulado, sin valor monetario real. Solo sirve para comprar aquí: no se puede retirar, transferir ni cambiar por dinero. Cada pago genera un comprobante, y si un pedido pagado con este saldo se cancela, el valor se devuelve a tu saldo.</p></div></details>
+<details><summary>6. Envíos y entrega</summary><div class="tc-b"><p>Enviamos a todo el país. Debes indicar país, ciudad, barrio y dirección completos y correctos; si el envío falla por datos errados o porque nadie recibe, los costos o demoras adicionales pueden ser tu responsabilidad. Revisa el paquete al recibirlo y repórtanos cualquier daño de inmediato.</p></div></details>
+<details><summary>7. Cancelaciones, retracto y devoluciones</summary><div class="tc-b"><ul><li><b>Cancelación:</b> puedes cancelar desde “Mis pedidos” mientras el pedido esté en estado Pendiente. El stock vuelve al inventario.</li><li><b>Derecho de retracto:</b> en compras a distancia puedes retractarte dentro de los 5 días hábiles siguientes a la entrega del producto (artículo 47 de la Ley 1480 de 2011 y normas que lo modifiquen). Escríbenos a <span class="tcContact"></span>.</li><li>El producto debe devolverse en buen estado y con sus accesorios. Los costos de la devolución los asume el consumidor y, si el retracto procede, te devolvemos todo lo pagado sin descuentos ni retenciones.</li><li>Aplican las excepciones que establece la ley.</li></ul></div></details>
+<details><summary>8. Garantía</summary><div class="tc-b"><p>Los productos cuentan con la garantía legal del Estatuto del Consumidor (Ley 1480 de 2011) y, cuando exista, con la garantía del fabricante. Si tu producto falla, contáctanos con el número de pedido para gestionar la reclamación.</p></div></details>
+<details><summary>9. Tus datos personales</summary><div class="tc-b"><p>Tratamos tus datos conforme a la Ley 1581 de 2012 solo para gestionar tu cuenta, tus compras, los envíos y las notificaciones de tus pedidos. No los vendemos. Tienes derecho a conocer, actualizar, rectificar y solicitar la supresión de tus datos escribiendo a <span class="tcContact"></span>. Puedes editarlos en “Mi perfil”.</p></div></details>
+<details><summary>10. Uso adecuado y propiedad intelectual</summary><div class="tc-b"><p>No puedes usar la tienda para actividades ilícitas, intentar vulnerar su seguridad ni copiar su contenido. Logos, textos e imágenes pertenecen a la tienda o a sus titulares.</p></div></details>
+<details><summary>11. Responsabilidad, cambios y ley aplicable</summary><div class="tc-b"><p>No respondemos por fallas de internet, de pasarelas de pago o de transportadoras ajenas a nuestro control, salvo lo que la ley disponga. Estos términos se rigen por las leyes de Colombia. Ante cualquier reclamo puedes acudir también a la Superintendencia de Industria y Comercio.</p></div></details>
+<div class="mf"><button type="button" class="btn ghost" data-close>Cerrar</button><button type="button" class="btn ok" id="tcAccept">Aceptar y continuar</button></div>
+</div></div>
+
+<!-- OVERLAY DE SESIÓN (carga + confirmación) -->
+<div class="authfx" id="authFx" role="status" aria-live="polite" hidden>
+  <div class="afx-card">
+    <div class="afx-icon">
+      <div class="afx-spin"></div>
+      <svg class="afx-ok" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M23 37l9 9 17-19"/></svg>
+    </div>
+    <div class="afx-txt" id="afxTxt"></div>
+    <div class="afx-sub" id="afxSub"></div>
+  </div>
+</div>
+
 <div id="toasts" aria-live="polite"></div>
 
 <script>
@@ -635,6 +713,23 @@ function toast(msg, err) {
   $('#toasts').append(t);
   setTimeout(() => t.remove(), 3500);
 }
+
+/* ---------- Overlay de sesión ---------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function fxLoading(txt, sub = 'Un momento por favor…') {
+  const f = $('#authFx'); f.classList.remove('done');
+  $('#afxTxt').textContent = txt; $('#afxSub').textContent = sub; f.hidden = false;
+}
+async function fxDone(txt, sub = '') {
+  const f = $('#authFx');
+  if (f.hidden) f.hidden = false;
+  f.classList.remove('done'); void f.offsetWidth;   // reinicia la animación del check
+  f.classList.add('done');
+  $('#afxTxt').textContent = txt; $('#afxSub').textContent = sub;
+  await sleep(1500);
+  f.hidden = true; f.classList.remove('done');
+}
+const fxHide = () => { const f = $('#authFx'); f.hidden = true; f.classList.remove('done'); };
 
 /* Cliente API: GET para lecturas, POST (FormData) para escrituras */
 async function api(action, params = {}, post = false) {
@@ -855,16 +950,24 @@ function openAuth(t = 'login') { authTab(t); open('mAuth'); }
 $$('#authTabs button').forEach(b => b.onclick = () => authTab(b.dataset.a));
 $('#navLogin').onclick = () => openAuth('login');
 $('#navReg').onclick = () => openAuth('reg');
-$('#navLogout').onclick = () => { api('logout', {}, true); user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; saldo = null; paintSaldo(); paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog'); toast('Sesión cerrada'); };
+$('#navLogout').onclick = async () => {
+  fxLoading('Cerrando sesión…');
+  await Promise.all([api('logout', {}, true), sleep(900)]);
+  user = null; cart = []; cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }; saldo = null;
+  paintSaldo(); paintBadge(); localStorage.removeItem('currentUser'); paintUser(); show('catalog');
+  await fxDone('Sesión cerrada', '¡Hasta pronto!');
+};
 
-function startSession(u) {
+async function startSession(u) {
   user = u; localStorage.setItem('currentUser', JSON.stringify(u));
-  close('mAuth'); paintUser(); refreshCart(); refreshSaldo(); toast(`¡Bienvenido, ${u.nombre}!`);
+  close('mAuth'); paintUser(); refreshCart(); refreshSaldo();
+  await fxDone('¡Sesión iniciada!', `Bienvenido, ${u.nombre}`);
 }
 async function doLogin(correo, password) {
-  const r = await api('login', { correo, password }, true);
-  if (!r.success) { toast(r.error || 'Correo o contraseña incorrectos', true); return false; }
-  startSession(r.user); return true;
+  fxLoading('Iniciando sesión…', 'Verificando tus datos');
+  const [r] = await Promise.all([api('login', { correo, password }, true), sleep(900)]);
+  if (!r.success) { fxHide(); toast(r.error || 'Correo o contraseña incorrectos', true); return false; }
+  await startSession(r.user); return true;
 }
 $('#fAuth').onsubmit = e => { e.preventDefault(); doLogin($('#lEmail').value.trim(), $('#lPass').value); };
 $('#fReg').onsubmit = async e => {
@@ -878,8 +981,7 @@ $('#fReg').onsubmit = async e => {
   }, true);
   if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
   $('#fReg').reset();
-  toast('Cuenta creada');
-  r.user ? startSession(r.user) : doLogin(correo, password);
+  r.user ? await startSession(r.user) : await doLogin(correo, password);
 };
 
 /* ---------- Catálogo público ---------- */
@@ -957,6 +1059,7 @@ $('#bAll').onclick = () => loadList('obtener_vista_catalogo');
 $('#bFeat').onclick = () => loadList('obtener_destacados');
 
 /* ---------- Carrito ---------- */
+let termsOk = false;   // aceptación de términos (se pide en el registro y antes de confirmar el pedido)
 let cart = [], cartAddress = { pais: '', ciudad: '', barrio: '', direccion: '' }, cartPay = 'Tarjeta crédito';
 function paintBadge() {
   const n = cart.reduce((s, i) => s + +i.cantidad, 0), b = $('#cartBadge');
@@ -1000,6 +1103,7 @@ function paintCart() {
     <div class="fg"><label for="cDir">Dirección</label><input id="cDir" maxlength="255" value="${esc(cartAddress.direccion)}" required oninput="cartAddress.direccion=this.value"></div>
     <div class="fg"><label for="cPay">Método de pago</label><select id="cPay" onchange="cartPay=this.value;paintPayInfo()">${['Tarjeta crédito', 'PSE', 'Nequi', 'Contraentrega', PAY_DIGITAL].map(m => `<option ${m === cartPay ? 'selected' : ''}>${m}</option>`).join('')}</select></div>
     <div id="payInfo" aria-live="polite"></div>
+    <div class="fg chk terms-row" id="cTermsRow"><label><input type="checkbox" id="cTerms" ${termsOk ? 'checked' : ''} onchange="termsOk=this.checked"><span>He leído y acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
     <button class="btn ok full" id="bCheckout" onclick="checkout()">Confirmar pedido</button>
   </aside></div>`;
   setupAddressAutocomplete('c');
@@ -1038,6 +1142,11 @@ async function recargarFalta(falta) {   // redondea hacia arriba a miles y respe
 let pagando = false;
 async function checkout() {
   if (pagando) return;   // evita doble clic (el backend también lo bloquea)
+  if (!termsOk) {   // los términos son obligatorios para confirmar
+    const row = $('#cTermsRow');
+    if (row) { row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake'); $('#cTerms').focus(); }
+    return toast('Acepta los términos y condiciones para confirmar el pedido', true);
+  }
   const btn = $('#bCheckout'), txt = btn ? btn.textContent : '';
   const digital = cartPay === PAY_DIGITAL, tot = cart.reduce((s, i) => s + +i.subtotal, 0);
   pagando = true; if (btn) { btn.disabled = true; btn.textContent = digital ? 'Procesando pago…' : 'Confirmando…'; }
@@ -1510,6 +1619,38 @@ paintDrawer = function () {   // pulso del contador al sumar unidades
   if (n > lastUnits) ['#cartBadge', '#navCart'].forEach(s => { const el = $(s); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
   lastUnits = n;
 };
+
+/* ---------- Términos y condiciones ---------- */
+document.addEventListener('click', e => { if (e.target.closest('[data-terms]')) { e.preventDefault(); openTerms(); } });
+function openTerms() {
+  const contact = $('#footContact').textContent.trim() || 'el correo de contacto de la tienda';
+  $$('.tcContact').forEach(el => el.textContent = contact);
+  $('#mTerms .mc').scrollTop = 0; $('#tcBar').style.width = '0';
+  open('mTerms');
+}
+$('#mTerms .mc').addEventListener('scroll', e => {
+  const m = e.currentTarget;
+  $('#tcBar').style.width = (m.scrollTop / Math.max(1, m.scrollHeight - m.clientHeight) * 100) + '%';
+});
+$('#tcAll').onclick = function () {
+  const all = $$('#mTerms details'), openAll = all.some(d => !d.open);
+  all.forEach(d => d.open = openAll); this.textContent = openAll ? 'Contraer todo' : 'Expandir todo';
+};
+$('#tcAccept').onclick = () => {
+  termsOk = true; $$('#rTerms,#cTerms').forEach(c => c.checked = true);
+  close('mTerms'); toast('Términos y condiciones aceptados');
+};
+
+/* ---------- Animaciones al hacer scroll ---------- */
+document.addEventListener('scroll', () => $('header').classList.toggle('stuck', scrollY > 8), { passive: true });
+if (!reduceMotion() && 'IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => es.forEach(en => {
+    if (!en.isIntersecting) return;
+    en.target.classList.add('in'); io.unobserve(en.target);
+    en.target.addEventListener('transitionend', () => en.target.style.transitionDelay = '', { once: true });
+  }), { threshold: .15 });
+  $$('.perks-in>div, .sh, .chips, .foot-in').forEach((el, i) => { el.classList.add('reveal'); el.style.transitionDelay = (i % 4) * 80 + 'ms'; io.observe(el); });
+}
 
 /* ---------- Inicio ---------- */
 async function syncSession() {   // la sesión real vive en el servidor
