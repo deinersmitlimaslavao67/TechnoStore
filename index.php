@@ -280,7 +280,7 @@ tbody tr{transition:background .15s}
   <div class="logo"><img id="storeLogo" alt="" hidden><span id="storeTitle">TechnoStore</span></div>
   <form class="hsearch" id="hSearchForm" role="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="hSearch" type="search" placeholder="Buscar laptops, audífonos, marcas…" aria-label="Buscar productos"></form>
   <nav>
-    <button data-v="catalog" class="on">Catálogo</button>
+    <button data-v="catalog" class="on">Catálogo2</button>
     <button data-v="orders" id="navOrders" hidden>Mis pedidos</button>
     <button data-v="profile" id="navProfile" hidden>Mi perfil</button>
     <button data-v="admin" id="navAdmin" hidden>Administración</button>
