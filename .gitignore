@@ -1,0 +1,13 @@
+# Configuración local de credenciales
+config.php
+
+# Dependencias de Composer (vendor se instala con composer install en cada equipo)
+vendor/
+
+# Archivos temporales de editores de código (Vim, VS Code, etc.)
+*.swp
+*.swo
+*~
+
+# Archivos de parches o diffs locales
+*.patch
