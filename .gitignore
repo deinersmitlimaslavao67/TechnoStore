@@ -1,13 +1,23 @@
-# Configuración local de credenciales
-config.php
+# Archivos y carpetas de configuración sensible
+config/
+.env
+.env.backup
+.env.production
+.env.local
 
-# Dependencias de Composer (vendor se instala con composer install en cada equipo)
+# Dependencias (Evita subir gigas de código de terceros)
 vendor/
+node_modules/
 
-# Archivos temporales de editores de código (Vim, VS Code, etc.)
-*.swp
-*.swo
-*~
+# Registros y bases de datos locales
+*.log
+*.sqlite
+*.sqlite3
 
-# Archivos de parches o diffs locales
-*.patch
+# Configuraciones de editores de código (IDE)
+.vscode/
+.idea/
+
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
