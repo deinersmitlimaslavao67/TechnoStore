@@ -1,7 +1,11 @@
 <?php
 // Ajusta estos datos a tu servidor MySQL (XAMPP/WAMP: usuario root, sin clave)
 <<<<<<< HEAD
+<<<<<<< HEAD
 const DB_HOST = '127.0.0.1:';
+=======
+const DB_HOST = '127.0.0.1:8080';
+>>>>>>> b48778c4dbb72d32c677f1352e925423d9d0b525
 const DB_NAME = 'catalogo_ecommerce';
 const DB_USER = 'root';
 const DB_PASS = '';
