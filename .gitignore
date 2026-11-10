@@ -21,3 +21,6 @@ node_modules/
 # Archivos generados por el sistema operativo
 .DS_Store
 Thumbs.db
+
+#Script de bases de datos
+*.sql
