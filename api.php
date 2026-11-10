@@ -17,10 +17,6 @@ function fail(string $m, int $c = 400)
     exit;
 }
 
-// Conexión: acepta DB_HOST con puerto, ej. '127.0.0.1:8080' (PDO necesita host y puerto separados)
-[$host, $port] = array_pad(explode(':', DB_HOST, 2), 2, '');
-
-
 // Ejecuta una consulta/CALL y devuelve las filas (o [] si no hay resultado)
 function q(string $sql, array $p = []): array
 {
@@ -46,6 +42,10 @@ function tx(callable $f)
         if ($e instanceof RuntimeException) fail($e->getMessage());
         throw $e;
     }
+}
+
+if (!($db instanceof PDO)) {
+    fail('No se pudo conectar a MySQL. Verifica DB_HOST, DB_PORT, DB_NAME, DB_USER y DB_PASS.', 500);
 }
 
 function geoJson(string $url, array $payload = null): array
@@ -300,9 +300,8 @@ try {
             out(['data' => $cities]);
 
             /* ---------- Sesión ---------- */
-        case 'sesion':
-            $u = me();
-            $u ? out(['user' => $u]) : fail('Sin sesión', 401);
+            case 'sesion':
+                out(['user' => me()]);
         case 'logout':
             $_SESSION = [];
             session_destroy();

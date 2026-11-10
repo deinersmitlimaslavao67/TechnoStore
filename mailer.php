@@ -4,7 +4,10 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailException;
 
-require_once __DIR__ . '/vendor/autoload.php';
+$autoload = __DIR__ . '/vendor/autoload.php';
+if (is_file($autoload)) {
+    require_once $autoload;
+}
 
 const MAIL_ESTADOS = [
     'PENDIENTE' => ['Pedido recibido',   '#B45309', 'Recibimos tu pedido y lo estamos revisando. Te avisaremos cuando confirmemos el pago.'],
@@ -23,6 +26,10 @@ function cop($n): string { return '$' . number_format((float)$n, 0, ',', '.'); }
  */
 function notificarPedido(int $idPedido): bool {
     if (!MAIL_ENABLED) return false;
+    if (!class_exists(PHPMailer::class)) {
+        error_log('[notificarPedido] PHPMailer no está instalado; ejecuta composer install.');
+        return false;
+    }
     try {
         $p = q('SELECT pe.id_pedido, pe.estado, pe.metodo_pago, pe.pais_envio, pe.ciudad_envio, pe.barrio_envio, pe.direccion_envio, u.nombre, u.correo
                   FROM pedido pe JOIN usuario u ON u.id_usuario = pe.id_usuario

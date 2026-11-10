@@ -25,3 +25,7 @@ Thumbs.db
 #Script de bases de datos
 *.sql
 config.php
+
+# La configuración sin secretos y el esquema inicial son necesarios para desplegar
+!config.php
+!bdcatalogo.sql

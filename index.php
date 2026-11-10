@@ -2718,16 +2718,7 @@
   </main>
 
   <footer class="foot">
-    <div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><span id="footContact"></span></div>
-  </footer>
-
-
-  <footer class="foot">
-    <div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país</span><button type="button" class="linkbtn" data-terms>Términos y condiciones</button><span id="footContact"></span></div>
-  </footer>
-
-  <footer class="foot">
-    <div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país · <a href="#" id="btnFooterTerms" style="color:var(--acc);text-decoration:underline">Términos y Condiciones</a></span><span id="footContact"></span></div>
+    <div class="foot-in"><b id="footName">TecnoShop</b><span>© 2026 · Tecnología con envío a todo el país · <button type="button" class="linkbtn" data-terms>Términos y condiciones</button></span><span id="footContact"></span></div>
   </footer>
 
 
@@ -2761,22 +2752,8 @@
         </div>
         <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
 
-        <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
-
-
         <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
         <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
-
-
-        <!-- Términos y Condiciones dentro de Registro -->
-        <div class="fg chk" style="margin-top:1rem;background:var(--card2);padding:.8rem;border-radius:8px;border:1px solid var(--line)">
-          <label>
-            <input type="checkbox" id="chkTerms" required>
-            <span style="font-size:.85rem">Acepto los <a href="#" id="btnShowTerms" style="color:var(--acc);text-decoration:underline">Términos y Condiciones</a> y la Política de Tratamiento de Datos.</span>
-          </label>
-        </div>
-
-        <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok" id="btnSubmitReg" disabled>Crear cuenta</button></div>
 
 
       </form>
@@ -2784,7 +2761,7 @@
   </div>
 
   <!-- MODAL TÉRMINOS Y CONDICIONES -->
-  <div class="modal" id="mTerms" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+  <div class="modal" id="mTermsLegacy" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
     <div class="mc terms">
       <h3 id="termsTitle">Términos y Condiciones</h3>
       <div class="terms-box" id="termsBox" tabindex="0">
@@ -2847,7 +2824,7 @@
         <div class="fg"><label for="pPre">Precio (COP)</label><input type="number" id="pPre" min="0" step="0.01" required></div>
         <div class="fg"><label for="pSto">Stock</label><input type="number" id="pSto" min="0" required></div>
       </div>
-      <div class="fg"><label for="pImg">Imagen (ruta, URL o subir archivo)</label><input id="pImg" value="img/default.jpg" maxlength="255">
+      <div class="fg"><label for="pImg">Imagen (ruta, URL o subir archivo)</label><input id="pImg" maxlength="255">
         <div class="up"><img alt=""><input type="file" data-target="pImg" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Subir imagen del producto"></div>
       </div>
       <div class="fg chk"><label><input type="checkbox" id="pDest"> Mostrar como destacado</label></div>
@@ -3106,6 +3083,7 @@
       return 'data:image/svg+xml,' + encodeURIComponent(svg);
     }
     const dat = p => `data-n="${esc(p.nombre)}" data-c="${esc(p.categoria)}" data-m="${esc(p.marca)}"`;
+    const imageSrc = p => p.imagen_url || art({ n: p.nombre, c: p.categoria, m: p.marca });
     document.addEventListener('error', e => {
       const i = e.target;
       if (i.tagName === 'IMG' && i.dataset.n !== undefined && !i.dataset.fb) {
@@ -3191,8 +3169,6 @@
 
 
     /* ---------- Overlay de sesión ---------- */
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-
     function fxLoading(txt, sub = 'Un momento por favor…') {
       const f = $('#authFx');
       f.classList.remove('done');
@@ -3522,8 +3498,8 @@
     $('#navLogin').onclick = () => openAuth('login');
     $('#navReg').onclick = () => openAuth('reg');
 
-    $('#navLogout').onclick = () => {
-      api('logout', {}, true);
+    $('#navLogout').onclick = async () => {
+      await api('logout', {}, true);
       user = null;
       cart = [];
       cartAddress = {
@@ -3549,235 +3525,58 @@
       refreshCart();
       refreshSaldo();
       toast(`¡Bienvenido, ${u.nombre}!`);
+    }
 
+    async function doLogin(correo, password) {
+      const r = await Loader.track(api('login', { correo, password }, true), 'Iniciando sesión…');
+      if (!r.success) {
+        toast(r.error || 'Correo o contraseña incorrectos', true);
+        return false;
+      }
+      startSession(r.user);
+      return true;
+    }
 
-      $('#navLogout').onclick = async () => {
-            fxLoading('Cerrando sesión…');
-            await Promise.all([api('logout', {}, true), sleep(900)]);
-            user = null;
-            cart = [];
-            cartAddress = {
-              pais: '',
-              ciudad: '',
-              barrio: '',
-              direccion: ''
-            };
-            saldo = null;
-            paintSaldo();
-            paintBadge();
-            localStorage.removeItem('currentUser');
-            paintUser();
-            show('catalog');
-            await fxDone('Sesión cerrada', '¡Hasta pronto!');
+    $('#fAuth').onsubmit = e => {
+      e.preventDefault();
+      busy($('#fAuth button:not([data-close])'), doLogin($('#lEmail').value.trim(), $('#lPass').value));
+    };
 
+    $('#fReg').onsubmit = async e => {
+      e.preventDefault();
+      if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
+      if (!$('#rTerms').checked) {
+        toast('Debes leer y aceptar los términos y condiciones', true);
+        return openTerms(true);
+      }
 
-            $('#navLogout').onclick = () => {
-              runActionFlow(
-                "Cerrando sesión…",
-                "Guardando tu información de forma segura.",
-                "Sesión cerrada",
-                "¡Esperamos verte pronto!",
-                async () => {
-                  await api('logout', {}, true);
-                  user = null;
-                  cart = [];
-                  cartAddress = {
-                    pais: '',
-                    ciudad: '',
-                    barrio: '',
-                    direccion: ''
-                  };
-                  paintBadge();
-                  localStorage.removeItem('currentUser');
-                  paintUser();
-                  show('catalog');
-                  return true;
-                }
-              );
+      const correo = $('#rEmail').value.trim();
+      const password = $('#rPass').value;
+      const btn = $('#fReg button:not([data-close])');
+      const r = await busy(btn, Loader.track(api('registrar', {
+        nombre: $('#rNom').value.trim(),
+        apellido: $('#rApe').value.trim(),
+        correo,
+        password,
+        telefono: $('#rTel').value.trim(),
+        pais: $('#rPais').value.trim(),
+        ciudad: $('#rCiudad').value.trim(),
+        barrio: $('#rBarrio').value.trim(),
+        direccion: $('#rDir').value.trim(),
+        terminos: 1
+      }, true), 'Creando tu cuenta…'));
+      if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
 
-            };
+      $('#fReg').reset();
+      toast('Cuenta creada');
+      if (r.user) startSession(r.user);
+      else await doLogin(correo, password);
+    };
 
-            async function startSession(u) {
-              user = u;
-              localStorage.setItem('currentUser', JSON.stringify(u));
-
-              close('mAuth');
-              paintUser();
-              refreshCart();
-              refreshSaldo();
-              await fxDone('¡Sesión iniciada!', `Bienvenido, ${u.nombre}`);
-
-              close('mAuth');
-              paintUser();
-              refreshCart();
-
-
-            }
-            async function doLogin(correo, password) {
-
-              const r = await Loader.track(api('login', {
-                correo,
-                password
-              }, true), 'Iniciando sesión…');
-              if (!r.success) {
-                toast(r.error || 'Correo o contraseña incorrectos', true);
-                return false;
-              }
-              startSession(r.user);
-              return true;
-
-
-              fxLoading('Iniciando sesión…', 'Verificando tus datos');
-              const [r] = await Promise.all([api('login', {
-                correo,
-                password
-              }, true), sleep(900)]);
-              if (!r.success) {
-                fxHide();
-                toast(r.error || 'Correo o contraseña incorrectos', true);
-                return false;
-              }
-              await startSession(r.user);
-              return true;
-
-              let loginUser = null;
-              runActionFlow(
-                "Iniciando sesión…",
-                "Comprobando credenciales de acceso.",
-                "¡Bienvenido de nuevo!",
-                "Acceso concedido con éxito.",
-                async () => {
-                  const r = await api('login', {
-                    correo,
-                    password
-                  }, true);
-                  if (!r.success) {
-                    toast(r.error || 'Correo o contraseña incorrectos', true);
-                    return false;
-                  }
-                  loginUser = r.user;
-                  startSession(loginUser);
-                  return true;
-                }
-              );
-
-
-            }
-            $('#fAuth').onsubmit = e => {
-              e.preventDefault();
-              busy($('#fAuth button:not([data-close])'), doLogin($('#lEmail').value.trim(), $('#lPass').value));
-            };
-            $('#fReg').onsubmit = async e => {
-              e.preventDefault();
-              if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
-              if (!$('#rTerms').checked) {
-                toast('Debes leer y aceptar los términos y condiciones', true);
-                return openTerms(true);
-              }
-              const correo = $('#rEmail').value.trim(),
-                password = $('#rPass').value;
-
-              const btn = $('#fReg button:not([data-close])');
-              const r = await busy(btn, Loader.track(api('registrar', {
-                nombre: $('#rNom').value.trim(),
-                apellido: $('#rApe').value.trim(),
-                correo,
-                password,
-                telefono: $('#rTel').value.trim(),
-                pais: $('#rPais').value.trim(),
-                ciudad: $('#rCiudad').value.trim(),
-                barrio: $('#rBarrio').value.trim(),
-                direccion: $('#rDir').value.trim(),
-                terminos: 1
-              }, true), 'Creando tu cuenta…'));
-              if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
-              $('#fReg').reset();
-              toast('Cuenta creada');
-              r.user ? startSession(r.user) : doLogin(correo, password);
-
-
-              const r = await api('registrar', {
-                nombre: $('#rNom').value.trim(),
-                apellido: $('#rApe').value.trim(),
-                correo,
-                password,
-                telefono: $('#rTel').value.trim(),
-                pais: $('#rPais').value.trim(),
-                ciudad: $('#rCiudad').value.trim(),
-                barrio: $('#rBarrio').value.trim(),
-                direccion: $('#rDir').value.trim()
-              }, true);
-              if (!r.success) return toast(r.error || 'No se pudo crear la cuenta', true);
-              $('#fReg').reset();
-              r.user ? await startSession(r.user) : await doLogin(correo, password);
-
-
-              runActionFlow(
-                "Creando tu cuenta…",
-                "Registrando la información en el sistema.",
-                "¡Cuenta creada!",
-                "Tu perfil ha sido registrado correctamente.",
-                async () => {
-                  const r = await api('registrar', {
-                    nombre: $('#rNom').value.trim(),
-                    apellido: $('#rApe').value.trim(),
-                    correo,
-                    password,
-                    telefono: $('#rTel').value.trim(),
-                    pais: $('#rPais').value.trim(),
-                    ciudad: $('#rCiudad').value.trim(),
-                    barrio: $('#rBarrio').value.trim(),
-                    direccion: $('#rDir').value.trim()
-                  }, true);
-
-                  if (!r.success) {
-                    toast(r.error || 'No se pudo crear la cuenta', true);
-                    return false;
-                  }
-                  $('#fReg').reset();
-                  chkTerms.checked = false;
-                  btnSubmitReg.disabled = true;
-                  if (r.user) startSession(r.user);
-                  return true;
-                }
-              );
-
-
-            };
-
-            /* ---------- Términos y condiciones ---------- */
-            function termsEnd() { // ¿llegó al final del texto?
-              const b = $('#termsBox');
-              if (b.scrollTop + b.clientHeight >= b.scrollHeight - 8) {
-                $('#termsAccept').disabled = false;
-                $('#termsHint').hidden = true;
-              }
-            }
-
-            function openTerms(forReg = false) { // forReg: viene del registro → debe leer hasta el final para aceptar
-              const b = $('#termsBox');
-              b.scrollTop = 0;
-              $('#termsAccept').hidden = !forReg;
-              $('#termsAccept').disabled = true;
-              $('#termsHint').hidden = !forReg;
-              $('#termsClose').textContent = forReg ? 'Cancelar' : 'Cerrar';
-              open('mTerms');
-              termsEnd();
-              b.focus();
-            }
-            $('#termsBox').onscroll = termsEnd;
-            $('#termsClose').onclick = () => close('mTerms');
-            $('#termsAccept').onclick = () => {
-              $('#rTerms').checked = true;
-              close('mTerms');
-              toast('Términos y condiciones aceptados');
-            };
-            $('#lnkTerms').onclick = () => openTerms(true);
-            $('#footTerms').onclick = () => openTerms(false);
             $('#rTerms').onclick = e => {
               if (e.target.checked) {
                 e.preventDefault();
-                openTerms(true);
+                openTerms();
               }
             }; // para marcarla hay que leer
 
@@ -3845,7 +3644,7 @@
               $('#productGrid').innerHTML = list.length ? list.map((p, ix) => `
     <article class="card" style="--i:${Math.min(ix, 12)}">
       <div class="ph" onclick="showProduct(${+p.id_producto})">
-        <img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="${esc(p.nombre)}" loading="lazy" ${dat(p)}>
+        <img src="${esc(imageSrc(p))}" alt="${esc(p.nombre)}" loading="lazy" ${dat(p)}>
         ${+p.destacado ? '<span class="tag">Destacado</span>' : ''}${+p.stock > 0 && +p.stock <= 5 ? '<span class="tag low">Últimas unidades</span>' : ''}
       </div>
       <div class="b">
@@ -3883,7 +3682,7 @@
             };
 
             function heroArt(list) {
-              $('#heroArt').innerHTML = list.slice(0, 3).map((p, i) => `<div class="hc hc${i}"><img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="" ${dat(p)}><div><b>${esc(p.nombre)}</b><span>${money(p.precio)}</span></div></div>`).join('');
+              $('#heroArt').innerHTML = list.slice(0, 3).map((p, i) => `<div class="hc hc${i}"><img src="${esc(imageSrc(p))}" alt="" ${dat(p)}><div><b>${esc(p.nombre)}</b><span>${money(p.precio)}</span></div></div>`).join('');
             }
             $('#bSearch').onclick = () => loadList('buscar_productos', {
               q: $('#searchInput').value
@@ -3945,7 +3744,7 @@
                 units = cart.reduce((s, i) => s + +i.cantidad, 0);
               box.innerHTML = `<div class="cartwrap"><div>
     ${cart.map(i => `<div class="ci">
-      <img src="${esc(i.imagen_url || 'img/default.jpg')}" alt="" ${dat(i)}>
+      <img src="${esc(imageSrc(i))}" alt="" ${dat(i)}>
       <div class="ci-t"><strong>${esc(i.nombre)}</strong><span>${esc(i.marca)} · ${esc(i.categoria)}</span><span>${money(i.precio)} c/u</span></div>
       <div class="qty"><button aria-label="Quitar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad - 1})">−</button><span>${+i.cantidad}</span><button aria-label="Agregar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad + 1})" ${+i.cantidad >= +i.stock ? 'disabled' : ''}>+</button></div>
       <div class="ci-s">${money(i.subtotal)}</div>
@@ -4161,14 +3960,14 @@
               });
               $('#prodBody').innerHTML = list.length ? list.map(p => del ? `
     <tr>
-      <td><img class="thumb" src="${esc(p.imagen_url || 'img/default.jpg')}" alt="" ${dat(p)}></td>
+      <td><img class="thumb" src="${esc(imageSrc(p))}" alt="" ${dat(p)}></td>
       <td><strong>${esc(p.nombre)}</strong><div style="color:var(--mut);font-size:.82rem">${esc(p.marca)}</div></td>
       <td>${esc(p.categoria)}${+p.cat_activa ? '' : ' <span class="pill low">Categoría eliminada</span>'}</td>
       <td>${money(p.precio)}</td><td>${+p.stock}</td><td><span class="pill">Eliminado</span></td>
       <td><button class="btn ok sm" onclick="restaurar('producto',${+p.id_producto})">Restaurar</button></td>
     </tr>` : `
     <tr>
-      <td><img class="thumb" src="${esc(p.imagen_url || 'img/default.jpg')}" alt="" ${dat(p)}></td>
+      <td><img class="thumb" src="${esc(imageSrc(p))}" alt="" ${dat(p)}></td>
       <td><strong>${esc(p.nombre)}</strong><div style="color:var(--mut);font-size:.82rem">${esc(p.marca)}</div></td>
       <td>${esc(p.categoria)}</td>
       <td>${money(p.precio)}</td>
@@ -4200,7 +3999,7 @@
               $('#pEsp').value = p.especificaciones || '';
               $('#pPre').value = p.precio ?? '';
               $('#pSto').value = p.stock ?? '';
-              $('#pImg').value = p.imagen_url || 'img/default.jpg';
+              $('#pImg').value = p.imagen_url || '';
               $('#pDest').checked = !!+p.destacado;
               $('#pImg').dispatchEvent(new Event('input'));
             }
@@ -4575,7 +4374,7 @@
               const raw = String(p.especificaciones || '');
               const specs = raw.split(raw.includes('\n') ? /\n/ : /,\s*/).map(x => x.trim()).filter(Boolean);
               $('#pdBody').innerHTML = `<div class="pd">
-    <img src="${esc(p.imagen_url || 'img/default.jpg')}" alt="${esc(p.nombre)}" ${dat(p)}>
+    <img src="${esc(imageSrc(p))}" alt="${esc(p.nombre)}" ${dat(p)}>
     <div>
       <div class="brand">${esc(p.marca)}</div><h3>${esc(p.nombre)}</h3>
       <div class="price">${money(p.precio)}</div>
@@ -4749,7 +4548,7 @@
               const total = cart.reduce((s, i) => s + +i.subtotal, 0),
                 units = cart.reduce((s, i) => s + +i.cantidad, 0);
               body.innerHTML = cart.map(i => `<div class="di">
-    <img src="${esc(i.imagen_url || 'img/default.jpg')}" alt="" ${dat(i)}>
+    <img src="${esc(imageSrc(i))}" alt="" ${dat(i)}>
     <div><strong>${esc(i.nombre)}</strong><span>${money(i.precio)} c/u</span>
       <div class="qty" style="width:max-content"><button aria-label="Quitar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad - 1})">−</button><span>${+i.cantidad}</span><button aria-label="Agregar una unidad" onclick="setQty(${+i.id_producto},${+i.cantidad + 1})" ${+i.cantidad >= +i.stock ? 'disabled' : ''}>+</button></div></div>
     <b>${money(i.subtotal)}</b></div>`).join('');
@@ -4781,7 +4580,7 @@
               const it = cart.find(i => +i.id_producto === id);
               if (!it) return;
               const total = cart.reduce((s, i) => s + +i.subtotal, 0);
-              notice('Añadido al carrito', `<div class="addok"><img src="${esc(it.imagen_url || 'img/default.jpg')}" alt="" ${dat(it)}><div><strong>${esc(it.nombre)}</strong><span>${+it.cantidad} en tu carrito · Total ${money(total)}</span></div></div>`,
+              notice('Añadido al carrito', `<div class="addok"><img src="${esc(imageSrc(it))}" alt="" ${dat(it)}><div><strong>${esc(it.nombre)}</strong><span>${+it.cantidad} en tu carrito · Total ${money(total)}</span></div></div>`,
                 [
                   ['Seguir comprando', 'ghost', () => close('mInfo')],
                   ['Ver carrito', 'ok', () => {

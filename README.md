@@ -56,7 +56,17 @@ Antes de iniciar, asegúrate de contar con lo siguiente:
 
 ## 🔧 Instalación y Configuración
 
-1. **Clonar el repositorio:**
+1. **Clonar el repositorio e instalar dependencias:**
    ```bash
-   git clone [https://github.com/tu-usuario/TechnoStore.git](https://github.com/tu-usuario/TechnoStore.git)
+   git clone https://github.com/deinersmitlimaslavao67/TechnoStore.git
+   cd TechnoStore
+   composer install
    ```
+
+2. **Crear la base de datos:** inicia Apache y MySQL en XAMPP, abre `http://localhost/phpmyadmin` e importa `bdcatalogo.sql`. El script crea la base `catalogo_ecommerce` y las tablas, vistas, procedimientos y datos de ejemplo.
+
+3. **Configurar la conexión:** por defecto se usan `127.0.0.1:3306`, la base `catalogo_ecommerce`, el usuario `root` y contraseña vacía (valores estándar de XAMPP). Si tu MySQL usa otros valores, configura en el entorno de Apache `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASS`. La contraseña no debe guardarse en Git.
+
+4. **Abrir la tienda:** visita `http://localhost/TechnoStore/`. Si la conexión falla, revisa el log de errores de PHP/Apache y confirma que MySQL está iniciado, que importaste el esquema y que las credenciales corresponden.
+
+El envío de correo está desactivado por defecto y no es necesario para usar la tienda. Para activarlo, configura `MAIL_ENABLED=true`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS` y `MAIL_FROM` en el entorno de Apache; luego instala las dependencias con Composer.

@@ -4,10 +4,16 @@
  */
 
 // --- Base de Datos ---
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'catalogo_ecommerce');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+function configEnv(string $name, string $default = ''): string {
+    $value = getenv($name);
+    return $value === false ? $default : $value;
+}
+
+define('DB_HOST', configEnv('DB_HOST', '127.0.0.1'));
+define('DB_PORT', (int)configEnv('DB_PORT', '3306'));
+define('DB_NAME', configEnv('DB_NAME', 'catalogo_ecommerce'));
+define('DB_USER', configEnv('DB_USER', 'root'));
+define('DB_PASS', configEnv('DB_PASS'));
 
 function conectar(): ?PDO {
     static $conexion = null;
@@ -17,39 +23,33 @@ function conectar(): ?PDO {
     }
 
     try {
-        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+        $host = DB_HOST;
+        $port = DB_PORT;
+        if (preg_match('/^(.+):([0-9]+)$/', $host, $matches)) {
+            $host = $matches[1];
+            $port = (int)$matches[2];
+        }
+        $dsn = 'mysql:host=' . $host . ';port=' . $port . ';dbname=' . DB_NAME . ';charset=utf8mb4';
         
         $conexion = new PDO($dsn, DB_USER, DB_PASS, [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false, // Mayor seguridad en consultas preparadas
         ]);
-        error_log("Conexión a la base de datos establecida correctamente.");
         return $conexion;
     } catch (PDOException $e) {
-        // En producción, es recomendable registrar el error en un archivo de log 
-        // en lugar de mostrarlo directamente en pantalla por seguridad:
-        // error_log("Error de conexión: " . $e->getMessage());
-        
-        error_log("Error en la conexión a la base de datos.");
+        error_log('[TechnoStore] Error de conexión a MySQL: ' . $e->getMessage());
         return null;
     }
 }
 
-// Intentamos conectar
 $db = conectar();
 
-if ($db) {
-    echo "¡Conexión establecida correctamente y lista para usarse!";
-} else {
-    echo "No se pudo conectar a la base de datos. Revisa los logs del servidor.";
-}
-
 // --- Configuración de Correo (Notificaciones) ---
-define('MAIL_ENABLED', true);                       // false = deshabilita el envío (útil en desarrollo)
-define('MAIL_HOST', 'smtp.gmail.com');
-define('MAIL_PORT', 587);                           // 587 = STARTTLS
-define('MAIL_USER', 'limasdeiner@gmail.com');       // Cuenta que envía los correos
-define('MAIL_PASS', 'goegissdhltjmgkl');            // Contraseña de aplicación de Google
-define('MAIL_FROM', 'limasdeiner@gmail.com');
-define('MAIL_FROM_NAME', 'tecnoshop');
+define('MAIL_ENABLED', filter_var(configEnv('MAIL_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN));
+define('MAIL_HOST', configEnv('MAIL_HOST', 'smtp.gmail.com'));
+define('MAIL_PORT', (int)configEnv('MAIL_PORT', '587'));
+define('MAIL_USER', configEnv('MAIL_USER'));
+define('MAIL_PASS', configEnv('MAIL_PASS'));
+define('MAIL_FROM', configEnv('MAIL_FROM', MAIL_USER));
+define('MAIL_FROM_NAME', configEnv('MAIL_FROM_NAME', 'TechnoStore'));
