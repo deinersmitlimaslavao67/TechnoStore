@@ -1,16 +1,9 @@
 <?php
 // Ajusta estos datos a tu servidor MySQL (XAMPP/WAMP: usuario root, sin clave)
-<<<<<<< HEAD
 const DB_HOST = '127.0.0.1:';
 const DB_NAME = 'catalogo_ecommerce';
 const DB_USER = 'root';
 const DB_PASS = '';
-=======
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'catalogo_ecommerce');
-define('DB_USER', 'root');
-define('DB_PASS', '');
->>>>>>> 0cbb1e0861ef66ca30c3db1cd8ef30e257a9ce9a
 function conectar(): PDO {
     return new PDO(
         'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS,
