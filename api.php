@@ -5,21 +5,21 @@ header('Content-Type: application/json; charset=utf-8');
 require __DIR__ . '/config.php';
 require __DIR__ . '/mailer.php';   // notificaciones por correo
 
-function out(array $d = []) { echo json_encode(['success' => true] + $d, JSON_UNESCAPED_UNICODE); exit; }
-function fail(string $m, int $c = 400) { http_response_code($c); echo json_encode(['success' => false, 'error' => $m], JSON_UNESCAPED_UNICODE); exit; }
-
-// Conexión: acepta DB_HOST con puerto, ej. '127.0.0.1:8080' (PDO necesita host y puerto separados)
-[$host, $port] = array_pad(explode(':', DB_HOST, 2), 2, '3306');
-try {
-    $db = new PDO("mysql:host=$host;port=$port;dbname=" . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-} catch (PDOException $e) {
-    // En producción quita el detalle del mensaje
-    fail('No se pudo conectar a MySQL (' . $host . ':' . $port . '): ' . $e->getMessage(), 500);
+function out(array $d = [])
+{
+    echo json_encode(['success' => true] + $d, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+function fail(string $m, int $c = 400)
+{
+    http_response_code($c);
+    echo json_encode(['success' => false, 'error' => $m], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 // Ejecuta una consulta/CALL y devuelve las filas (o [] si no hay resultado)
-function q(string $sql, array $p = []): array {
+function q(string $sql, array $p = []): array
+{
     global $db;
     $st = $db->prepare($sql);
     $st->execute($p);
@@ -29,14 +29,27 @@ function q(string $sql, array $p = []): array {
 }
 
 // Transacción: si algo falla se deshace todo
-function tx(callable $f) {
+function tx(callable $f)
+{
     global $db;
     $db->beginTransaction();
-    try { $r = $f(); $db->commit(); return $r; }
-    catch (Throwable $e) { $db->rollBack(); if ($e instanceof RuntimeException) fail($e->getMessage()); throw $e; }
+    try {
+        $r = $f();
+        $db->commit();
+        return $r;
+    } catch (Throwable $e) {
+        $db->rollBack();
+        if ($e instanceof RuntimeException) fail($e->getMessage());
+        throw $e;
+    }
 }
 
-function geoJson(string $url, array $payload = null): array {
+if (!($db instanceof PDO)) {
+    fail('No se pudo conectar a MySQL. Verifica DB_HOST, DB_PORT, DB_NAME, DB_USER y DB_PASS.', 500);
+}
+
+function geoJson(string $url, array $payload = null): array
+{
     $options = [
         'http' => [
             'method' => $payload === null ? 'GET' : 'POST',
@@ -51,7 +64,8 @@ function geoJson(string $url, array $payload = null): array {
     return is_array($data) ? $data : [];
 }
 
-function countryNames(): array {
+function countryNames(): array
+{
     $data = geoJson('https://restcountries.com/v3.1/all?fields=name');
     $countries = [];
     foreach ($data as $country) {
@@ -63,7 +77,8 @@ function countryNames(): array {
 }
 // Precio histórico: guarda en cada línea de pedido el precio con el que se compró.
 // Se aplica sola una vez por sesión; es idempotente (no hace falta ningún script).
-function migrar(): void {
+function migrar(): void
+{
     global $db;
     if (!empty($_SESSION['mig_ok'])) return;
     try {
@@ -74,7 +89,11 @@ function migrar(): void {
         ];
         foreach ($addUsuarioColumn as $column => $sql) {
             if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuario' AND COLUMN_NAME = ?", [$column])) {
-                try { $db->exec($sql); } catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }
+                try {
+                    $db->exec($sql);
+                } catch (PDOException $e) {
+                    if (($e->errorInfo[1] ?? 0) != 1060) throw $e;
+                }
             }
         }
         $addPedidoColumn = [
@@ -84,20 +103,30 @@ function migrar(): void {
         ];
         foreach ($addPedidoColumn as $column => $sql) {
             if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pedido' AND COLUMN_NAME = ?", [$column])) {
-                try { $db->exec($sql); } catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }
+                try {
+                    $db->exec($sql);
+                } catch (PDOException $e) {
+                    if (($e->errorInfo[1] ?? 0) != 1060) throw $e;
+                }
             }
         }
         if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'detalle_pedido' AND COLUMN_NAME = 'precio_unitario'")) {
-            try { $db->exec('ALTER TABLE detalle_pedido ADD COLUMN precio_unitario DECIMAL(12,2) NULL AFTER cantidad'); }
-            catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }   // 1060 = otra petición ya la creó
+            try {
+                $db->exec('ALTER TABLE detalle_pedido ADD COLUMN precio_unitario DECIMAL(12,2) NULL AFTER cantidad');
+            } catch (PDOException $e) {
+                if (($e->errorInfo[1] ?? 0) != 1060) throw $e;
+            }   // 1060 = otra petición ya la creó
         }
         // Pedidos ya confirmados que aún no tienen precio guardado: se les fija el precio actual del producto
         $db->exec("UPDATE detalle_pedido d JOIN pedido pe ON pe.id_pedido = d.id_pedido JOIN producto p ON p.id_producto = d.id_producto
                    SET d.precio_unitario = p.precio WHERE d.precio_unitario IS NULL AND pe.estado <> 'CARRITO'");
         // Dinero digital (simulado): saldo por usuario + movimientos + comprobantes
         if (!q("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'usuario' AND COLUMN_NAME = 'saldo_digital'")) {
-            try { $db->exec('ALTER TABLE usuario ADD COLUMN saldo_digital DECIMAL(12,2) NOT NULL DEFAULT 10000000.00, ADD CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)'); }
-            catch (PDOException $e) { if (($e->errorInfo[1] ?? 0) != 1060) throw $e; }
+            try {
+                $db->exec('ALTER TABLE usuario ADD COLUMN saldo_digital DECIMAL(12,2) NOT NULL DEFAULT 10000000.00, ADD CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)');
+            } catch (PDOException $e) {
+                if (($e->errorInfo[1] ?? 0) != 1060) throw $e;
+            }
         }
         $db->exec('CREATE TABLE IF NOT EXISTS transaccion_digital (
             id_transaccion INT AUTO_INCREMENT PRIMARY KEY, id_usuario INT NOT NULL, id_pedido INT NULL,
@@ -123,10 +152,16 @@ function migrar(): void {
 }
 
 // Valida nombre/apellido/teléfono/dirección (perfil propio y edición por el administrador)
-function datosPerfil(): array {
+function datosPerfil(): array
+{
     global $v;
-    $n = $v('nombre'); $ap = $v('apellido'); $t = $v('telefono'); $d = $v('direccion');
-    $pais = $v('pais'); $ciudad = $v('ciudad'); $barrio = $v('barrio');
+    $n = $v('nombre');
+    $ap = $v('apellido');
+    $t = $v('telefono');
+    $d = $v('direccion');
+    $pais = $v('pais');
+    $ciudad = $v('ciudad');
+    $barrio = $v('barrio');
     if ($n === '' || $ap === '') fail('Nombre y apellido son obligatorios');
     if (mb_strlen($n) > 80 || mb_strlen($ap) > 80) fail('Nombre y apellido admiten máximo 80 caracteres');
     if (mb_strlen($t) > 20) fail('El teléfono admite máximo 20 caracteres');
@@ -137,7 +172,8 @@ function datosPerfil(): array {
     return [$n, $ap, $t ?: null, $pais ?: null, $ciudad ?: null, $barrio ?: null, $d ?: null];
 }
 
-function cartId(int $uid) {
+function cartId(int $uid)
+{
     return q("SELECT id_pedido FROM pedido WHERE id_usuario = ? AND estado = 'CARRITO' ORDER BY id_pedido DESC LIMIT 1", [$uid])[0]['id_pedido'] ?? null;
 }
 
@@ -148,7 +184,8 @@ const RECARGA_MAX    = 10000000;   // tope por recarga
 // Suma o resta saldo y registra el movimiento. Úsala SOLO dentro de tx(): bloquea la fila del usuario
 // (FOR UPDATE) para que dos pagos simultáneos no puedan gastar el mismo saldo.
 // RECARGA y REEMBOLSO suman; PAGO resta. Devuelve ['id' => id_transaccion, 'saldo' => saldo final].
-function moverSaldo(int $uid, string $tipo, float $monto, ?int $idPedido = null): array {
+function moverSaldo(int $uid, string $tipo, float $monto, ?int $idPedido = null): array
+{
     global $db;
     if (!in_array($tipo, ['RECARGA', 'PAGO', 'REEMBOLSO'], true)) throw new LogicException('Tipo de movimiento inválido');
     $monto = round($monto, 2);
@@ -161,18 +198,22 @@ function moverSaldo(int $uid, string $tipo, float $monto, ?int $idPedido = null)
         throw new RuntimeException('Saldo digital insuficiente: tienes $' . number_format($antes, 0, ',', '.') . ' y el pedido cuesta $' . number_format($monto, 0, ',', '.'));
     q('UPDATE usuario SET saldo_digital = saldo_digital + ? WHERE id_usuario = ?', [$delta, $uid]);
     $despues = (float)q('SELECT saldo_digital FROM usuario WHERE id_usuario = ?', [$uid])[0]['saldo_digital'];
-    q('INSERT INTO transaccion_digital (id_usuario, id_pedido, tipo, monto, saldo_anterior, saldo_posterior) VALUES (?,?,?,?,?,?)',
-      [$uid, $idPedido, $tipo, $monto, $antes, $despues]);
+    q(
+        'INSERT INTO transaccion_digital (id_usuario, id_pedido, tipo, monto, saldo_anterior, saldo_posterior) VALUES (?,?,?,?,?,?)',
+        [$uid, $idPedido, $tipo, $monto, $antes, $despues]
+    );
     return ['id' => (int)$db->lastInsertId(), 'saldo' => $despues];
 }
 
 // Total del pedido con los precios ya congelados (detalle_pedido.precio_unitario)
-function totalPedido(int $idPedido): float {
+function totalPedido(int $idPedido): float
+{
     return (float)(q('SELECT COALESCE(SUM(cantidad * precio_unitario), 0) AS t FROM detalle_pedido WHERE id_pedido = ?', [$idPedido])[0]['t'] ?? 0);
 }
 
 // Crea el comprobante virtual del pedido y devuelve su número (COMP-000001). Dentro de tx().
-function emitirComprobante(int $idPedido, int $uid, int $idTransaccion, float $monto): string {
+function emitirComprobante(int $idPedido, int $uid, int $idTransaccion, float $monto): string
+{
     global $db;
     q('INSERT INTO comprobante (id_pedido, id_usuario, id_transaccion, monto) VALUES (?,?,?,?)', [$idPedido, $uid, $idTransaccion, $monto]);
     $id = (int)$db->lastInsertId();
@@ -183,7 +224,8 @@ function emitirComprobante(int $idPedido, int $uid, int $idTransaccion, float $m
 
 // Si el pedido se pagó con dinero digital y todavía no se devolvió, devuelve el dinero. Dentro de tx(),
 // con la fila del pedido ya bloqueada (así un reembolso no se puede duplicar).
-function reembolsarPedido(int $idPedido): void {
+function reembolsarPedido(int $idPedido): void
+{
     $pago = q("SELECT id_usuario, monto FROM transaccion_digital WHERE id_pedido = ? AND tipo = 'PAGO' LIMIT 1", [$idPedido])[0] ?? null;
     if (!$pago) return;   // no se pagó con dinero digital
     if (q("SELECT 1 FROM transaccion_digital WHERE id_pedido = ? AND tipo = 'REEMBOLSO'", [$idPedido])) return;   // ya reembolsado
@@ -195,30 +237,50 @@ $a  = $in['action'] ?? '';
 $v  = fn(string $k, $d = '') => isset($in[$k]) ? trim((string)$in[$k]) : $d;
 
 // Ruta de imagen segura: relativa (img/logo.png) o URL http(s), sin comillas, paréntesis ni espacios
-function urlSegura(string $s): bool {
+function urlSegura(string $s): bool
+{
     return mb_strlen($s) <= 255 && (
         preg_match('#^https?://[^\s"\'()<>\\\\]+$#i', $s) === 1 ||
         preg_match('#^(?!/)[A-Za-z0-9_\-./%]+$#', $s) === 1
     );
 }
 
-function me() { return $_SESSION['user'] ?? null; }
-function needLogin() { $u = me(); if (!$u) fail('Debes iniciar sesión', 401); return $u; }
-function needAdmin() { $u = needLogin(); if ($u['rol'] !== 'ADMINISTRADOR') fail('Solo para administradores', 403); return $u; }
+function me()
+{
+    return $_SESSION['user'] ?? null;
+}
+function needLogin()
+{
+    $u = me();
+    if (!$u) fail('Debes iniciar sesión', 401);
+    return $u;
+}
+function needAdmin()
+{
+    $u = needLogin();
+    if ($u['rol'] !== 'ADMINISTRADOR') fail('Solo para administradores', 403);
+    return $u;
+}
 
 migrar();
 
 try {
     switch ($a) {
         /* ---------- Público ---------- */
-        case 'obtener_tienda':        out(['data' => q('SELECT nombre_tienda, descripcion_tienda, logo_url, banner_url, color_primario, color_secundario,
+        case 'obtener_tienda':
+            out(['data' => q('SELECT nombre_tienda, descripcion_tienda, logo_url, banner_url, color_primario, color_secundario,
                                                          correo_contacto, telefono_contacto
                                                   FROM personalizacion_tienda ORDER BY id_personalizacion DESC LIMIT 1')[0] ?? null]);
-        case 'listar_catalogo':       out(['data' => q('CALL sp_listar_catalogo()')]);
-        case 'obtener_vista_catalogo':out(['data' => q('SELECT * FROM v_catalogo_publico ORDER BY categoria, nombre')]);
-        case 'obtener_destacados':    out(['data' => q('SELECT * FROM v_productos_destacados')]);
-        case 'buscar_productos':      out(['data' => q('CALL sp_buscar_productos(?)', [$v('q')])]);
-        case 'listar_categorias':     out(['data' => q('CALL sp_listar_categorias()')]);
+        case 'listar_catalogo':
+            out(['data' => q('CALL sp_listar_catalogo()')]);
+        case 'obtener_vista_catalogo':
+            out(['data' => q('SELECT * FROM v_catalogo_publico ORDER BY categoria, nombre')]);
+        case 'obtener_destacados':
+            out(['data' => q('SELECT * FROM v_productos_destacados')]);
+        case 'buscar_productos':
+            out(['data' => q('CALL sp_buscar_productos(?)', [$v('q')])]);
+        case 'listar_categorias':
+            out(['data' => q('CALL sp_listar_categorias()')]);
         case 'obtener_paises':
             out(['data' => countryNames()]);
         case 'obtener_ciudades':
@@ -237,9 +299,13 @@ try {
             sort($cities, SORT_NATURAL | SORT_FLAG_CASE);
             out(['data' => $cities]);
 
-        /* ---------- Sesión ---------- */
-        case 'sesion':  $u = me(); $u ? out(['user' => $u]) : fail('Sin sesión', 401);
-        case 'logout':  $_SESSION = []; session_destroy(); out();
+            /* ---------- Sesión ---------- */
+            case 'sesion':
+                out(['user' => me()]);
+        case 'logout':
+            $_SESSION = [];
+            session_destroy();
+            out();
         case 'login':
             $r = q('CALL sp_login_usuario(?)', [$v('correo')])[0] ?? null;
             if (!$r) fail('Correo o contraseña incorrectos', 401);
@@ -263,17 +329,23 @@ try {
             if (strlen($v('password')) < 6) fail('La contraseña debe tener al menos 6 caracteres');
             if ($v('terminos') !== '1') fail('Debes aceptar los términos y condiciones para crear tu cuenta');
             $id = q('CALL sp_registrar_usuario(?,?,?,?,?,?)', [
-                $v('nombre'), $v('apellido'), $v('correo'),
-                password_hash($v('password'), PASSWORD_DEFAULT), $v('telefono') ?: null, $v('direccion') ?: null
+                $v('nombre'),
+                $v('apellido'),
+                $v('correo'),
+                password_hash($v('password'), PASSWORD_DEFAULT),
+                $v('telefono') ?: null,
+                $v('direccion') ?: null
             ])[0]['id_usuario'];
-            q('UPDATE usuario SET pais = ?, ciudad = ?, barrio = ? WHERE id_usuario = ?',
-              [$v('pais') ?: null, $v('ciudad') ?: null, $v('barrio') ?: null, $id]);
+            q(
+                'UPDATE usuario SET pais = ?, ciudad = ?, barrio = ? WHERE id_usuario = ?',
+                [$v('pais') ?: null, $v('ciudad') ?: null, $v('barrio') ?: null, $id]
+            );
             session_regenerate_id(true);
             // El rol siempre es CLIENTE (lo fija el procedimiento, nunca el formulario)
             $_SESSION['user'] = ['id_usuario' => $id, 'nombre' => $v('nombre'), 'apellido' => $v('apellido'), 'correo' => $v('correo'), 'rol' => 'CLIENTE'];
             out(['user' => $_SESSION['user']]);
 
-        /* ---------- Cliente (usa SIEMPRE el id de la sesión) ---------- */
+            /* ---------- Cliente (usa SIEMPRE el id de la sesión) ---------- */
         case 'agregar_carrito':
             $u = needLogin();
             q('CALL sp_agregar_al_carrito(?,?,?)', [$u['id_usuario'], (int)$v('id_producto'), max(1, (int)$v('cantidad', 1))]);
@@ -308,13 +380,23 @@ try {
                         JOIN categoria c ON c.id_categoria = p.id_categoria
                         WHERE pe.id_usuario = ? AND pe.estado = 'CARRITO' ORDER BY d.id_detalle", [$u['id_usuario']]);
             $address = q('SELECT direccion, pais, ciudad, barrio FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0] ?? [];
-            out(['data' => $items, 'direccion' => $address['direccion'] ?? '', 'pais' => $address['pais'] ?? '',
-                 'ciudad' => $address['ciudad'] ?? '', 'barrio' => $address['barrio'] ?? '']);
+            out([
+                'data' => $items,
+                'direccion' => $address['direccion'] ?? '',
+                'pais' => $address['pais'] ?? '',
+                'ciudad' => $address['ciudad'] ?? '',
+                'barrio' => $address['barrio'] ?? ''
+            ]);
         case 'actualizar_carrito':   // cantidad <= 0 quita el producto
-            $u = needLogin(); $pid = (int)$v('id_producto'); $n = (int)$v('cantidad');
+            $u = needLogin();
+            $pid = (int)$v('id_producto');
+            $n = (int)$v('cantidad');
             $cid = cartId($u['id_usuario']);
             if (!$cid) fail('Tu carrito está vacío');
-            if ($n <= 0) { q('DELETE FROM detalle_pedido WHERE id_pedido = ? AND id_producto = ?', [$cid, $pid]); out(); }
+            if ($n <= 0) {
+                q('DELETE FROM detalle_pedido WHERE id_pedido = ? AND id_producto = ?', [$cid, $pid]);
+                out();
+            }
             $stock = q('SELECT stock FROM producto WHERE id_producto = ? AND activo = TRUE', [$pid])[0]['stock'] ?? null;
             if ($stock === null) fail('El producto ya no está disponible');
             if ($n > (int)$stock) fail("Solo hay $stock unidades disponibles");
@@ -324,7 +406,7 @@ try {
             $u = needLogin();
             if ($cid = cartId($u['id_usuario'])) q('DELETE FROM detalle_pedido WHERE id_pedido = ?', [$cid]);
             out();
-        /* ---------- Dinero digital (saldo simulado) ---------- */
+            /* ---------- Dinero digital (saldo simulado) ---------- */
         case 'saldo_digital':
             $u = needLogin();
             out(['saldo' => (float)q('SELECT saldo_digital FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0]['saldo_digital']]);
@@ -343,7 +425,8 @@ try {
                               FROM transaccion_digital t LEFT JOIN comprobante c ON c.id_transaccion = t.id_transaccion
                               WHERE t.id_usuario = ? ORDER BY t.id_transaccion DESC LIMIT 50', [$u['id_usuario']])]);
         case 'obtener_comprobante':   // del propio usuario; el administrador puede ver cualquiera
-            $u = needLogin(); $id = (int)$v('id_pedido');
+            $u = needLogin();
+            $id = (int)$v('id_pedido');
             $c = q("SELECT c.numero, c.monto, c.fecha_emision, c.id_pedido, c.id_usuario, pe.metodo_pago, pe.estado,
                            CONCAT(us.nombre, ' ', us.apellido) AS cliente, us.correo
                     FROM comprobante c JOIN pedido pe ON pe.id_pedido = c.id_pedido JOIN usuario us ON us.id_usuario = c.id_usuario
@@ -355,9 +438,13 @@ try {
                              WHERE d.id_pedido = ? ORDER BY d.id_detalle', [$id]);
             out(['data' => $c]);
         case 'confirmar_pedido':
-            $u = needLogin(); $cid = cartId($u['id_usuario']);
-            $dir = $v('direccion_envio'); $mp = $v('metodo_pago');
-            $pais = $v('pais_envio'); $ciudad = $v('ciudad_envio'); $barrio = $v('barrio_envio');
+            $u = needLogin();
+            $cid = cartId($u['id_usuario']);
+            $dir = $v('direccion_envio');
+            $mp = $v('metodo_pago');
+            $pais = $v('pais_envio');
+            $ciudad = $v('ciudad_envio');
+            $barrio = $v('barrio_envio');
             if (!$cid) fail('Tu carrito está vacío');
             if (mb_strlen($dir) < 6) fail('Escribe una dirección de envío válida');
             if ($pais === '' || $ciudad === '' || $barrio === '') fail('Completa país, ciudad y barrio');
@@ -387,7 +474,8 @@ try {
             notificarPedido((int)$cid);   // correo: pedido recibido
             out(['id_pedido' => $cid] + $res);
         case 'cancelar_pedido':   // solo pedidos PENDIENTE del propio usuario; devuelve el stock
-            $u = needLogin(); $id = (int)$v('id_pedido');
+            $u = needLogin();
+            $id = (int)$v('id_pedido');
             tx(function () use ($u, $id) {
                 $p = q('SELECT estado FROM pedido WHERE id_pedido = ? AND id_usuario = ? FOR UPDATE', [$id, $u['id_usuario']])[0] ?? null;
                 if (!$p) throw new RuntimeException('Pedido no encontrado');
@@ -398,34 +486,60 @@ try {
             notificarPedido($id);   // correo: pedido cancelado
             out();
 
-        /* ---------- Administrador ---------- */
-        case 'admin_productos': needAdmin(); out(['data' => q('CALL sp_admin_listar_productos()')]);
-        case 'obtener_producto':needAdmin(); out(['data' => q('CALL sp_obtener_producto(?)', [(int)$v('id_producto')])[0] ?? null]);
+            /* ---------- Administrador ---------- */
+        case 'admin_productos':
+            needAdmin();
+            out(['data' => q('CALL sp_admin_listar_productos()')]);
+        case 'obtener_producto':
+            needAdmin();
+            out(['data' => q('CALL sp_obtener_producto(?)', [(int)$v('id_producto')])[0] ?? null]);
         case 'crear_producto':
         case 'actualizar_producto':
             needAdmin();
             if ($v('nombre') === '' || (float)$v('precio') < 0 || (int)$v('stock') < 0) fail('Revisa nombre, precio y stock');
             if ($v('imagen_url') !== '' && !urlSegura($v('imagen_url'))) fail('La imagen debe ser una ruta como img/foto.jpg o una URL http(s) sin espacios');
-            $f = [(int)$v('id_categoria'), $v('nombre'), $v('marca') ?: null, $v('descripcion') ?: null, $v('especificaciones') ?: null,
-                  $v('precio', '0'), (int)$v('stock'), $v('imagen_url') ?: null, $v('destacado') ? 1 : 0];
+            $f = [
+                (int)$v('id_categoria'),
+                $v('nombre'),
+                $v('marca') ?: null,
+                $v('descripcion') ?: null,
+                $v('especificaciones') ?: null,
+                $v('precio', '0'),
+                (int)$v('stock'),
+                $v('imagen_url') ?: null,
+                $v('destacado') ? 1 : 0
+            ];
             if ($a === 'crear_producto') {
                 q('CALL sp_crear_producto(?,?,?,?,?,?,?,?,?)', $f);
             } else {
                 q('CALL sp_actualizar_producto(?,?,?,?,?,?,?,?,?,?)', array_merge([(int)$v('id_producto')], $f));
             }
             out();
-        case 'eliminar_producto': needAdmin(); q('CALL sp_eliminar_producto(?)', [(int)$v('id_producto')]); out();
-        case 'actualizar_stock':  needAdmin(); q('CALL sp_actualizar_stock(?,?)', [$v('nombre_producto'), (int)$v('nuevo_stock')]); out();
+        case 'eliminar_producto':
+            needAdmin();
+            q('CALL sp_eliminar_producto(?)', [(int)$v('id_producto')]);
+            out();
+        case 'actualizar_stock':
+            needAdmin();
+            q('CALL sp_actualizar_stock(?,?)', [$v('nombre_producto'), (int)$v('nuevo_stock')]);
+            out();
 
         case 'crear_categoria':
-            needAdmin(); if ($v('nombre') === '') fail('El nombre es obligatorio');
-            q('CALL sp_crear_categoria(?,?)', [$v('nombre'), $v('descripcion') ?: null]); out();
+            needAdmin();
+            if ($v('nombre') === '') fail('El nombre es obligatorio');
+            q('CALL sp_crear_categoria(?,?)', [$v('nombre'), $v('descripcion') ?: null]);
+            out();
         case 'actualizar_categoria':
-            needAdmin(); if ($v('nombre') === '') fail('El nombre es obligatorio');
-            q('CALL sp_actualizar_categoria(?,?,?)', [(int)$v('id_categoria'), $v('nombre'), $v('descripcion') ?: null]); out();
-        case 'eliminar_categoria': needAdmin(); q('CALL sp_eliminar_categoria(?)', [(int)$v('id_categoria')]); out();
+            needAdmin();
+            if ($v('nombre') === '') fail('El nombre es obligatorio');
+            q('CALL sp_actualizar_categoria(?,?,?)', [(int)$v('id_categoria'), $v('nombre'), $v('descripcion') ?: null]);
+            out();
+        case 'eliminar_categoria':
+            needAdmin();
+            q('CALL sp_eliminar_categoria(?)', [(int)$v('id_categoria')]);
+            out();
 
-        /* ----- Pedidos (administrador) ----- */
+            /* ----- Pedidos (administrador) ----- */
         case 'admin_pedidos':
             needAdmin();
             out(['data' => q("SELECT pe.id_pedido, pe.estado, pe.fecha_creacion, pe.fecha_compra, pe.metodo_pago,
@@ -439,7 +553,8 @@ try {
                               ORDER BY pe.fecha_creacion DESC, pe.id_pedido DESC")]);
         case 'cambiar_estado_pedido':   // flujo: PENDIENTE → PAGADO → ENVIADO → ENTREGADO; cancelar devuelve el stock
             needAdmin();
-            $id = (int)$v('id_pedido'); $nuevo = $v('estado');
+            $id = (int)$v('id_pedido');
+            $nuevo = $v('estado');
             $flujo = ['PENDIENTE' => ['PAGADO', 'CANCELADO'], 'PAGADO' => ['ENVIADO', 'CANCELADO'], 'ENVIADO' => ['ENTREGADO', 'CANCELADO']];
             tx(function () use ($id, $nuevo, $flujo) {
                 $p = q('SELECT estado FROM pedido WHERE id_pedido = ? FOR UPDATE', [$id])[0] ?? null;
@@ -455,14 +570,19 @@ try {
             notificarPedido($id);   // correo: avisa al cliente del nuevo estado
             out();
 
-        /* ----- Personalización de la tienda ----- */
+            /* ----- Personalización de la tienda ----- */
         case 'tienda_admin':
             needAdmin();
             out(['data' => q('SELECT * FROM personalizacion_tienda ORDER BY id_personalizacion DESC LIMIT 1')[0] ?? null]);
         case 'guardar_tienda':
             $u = needAdmin();
-            $nom = $v('nombre_tienda'); $c1 = $v('color_primario'); $c2 = $v('color_secundario');
-            $mail = $v('correo_contacto'); $tel = $v('telefono_contacto'); $logo = $v('logo_url'); $ban = $v('banner_url');
+            $nom = $v('nombre_tienda');
+            $c1 = $v('color_primario');
+            $c2 = $v('color_secundario');
+            $mail = $v('correo_contacto');
+            $tel = $v('telefono_contacto');
+            $logo = $v('logo_url');
+            $ban = $v('banner_url');
             if ($nom === '' || mb_strlen($nom) > 80) fail('El nombre de la tienda es obligatorio (máx. 80 caracteres)');
             if (!preg_match('/^#[0-9a-fA-F]{6}$/', $c1) || !preg_match('/^#[0-9a-fA-F]{6}$/', $c2)) fail('Los colores deben tener formato #RRGGBB');
             if ($mail !== '' && (!filter_var($mail, FILTER_VALIDATE_EMAIL) || mb_strlen($mail) > 120)) fail('Correo de contacto no válido');
@@ -481,13 +601,15 @@ try {
         case 'cambiar_rol':
             $u = needAdmin();
             if ((int)$v('id_usuario') === (int)$u['id_usuario']) fail('No puedes cambiar tu propio rol');
-            q('CALL sp_cambiar_rol(?,?)', [(int)$v('id_usuario'), $v('rol')]); out();
+            q('CALL sp_cambiar_rol(?,?)', [(int)$v('id_usuario'), $v('rol')]);
+            out();
         case 'eliminar_usuario':
             $u = needAdmin();
             if ((int)$v('id_usuario') === (int)$u['id_usuario']) fail('No puedes eliminar tu propia cuenta');
-            q('CALL sp_eliminar_usuario(?)', [(int)$v('id_usuario')]); out();
+            q('CALL sp_eliminar_usuario(?)', [(int)$v('id_usuario')]);
+            out();
 
-        /* ---------- Usuarios: edición por el administrador ---------- */
+            /* ---------- Usuarios: edición por el administrador ---------- */
         case 'admin_actualizar_usuario':
             $adm = needAdmin();
             $uid = (int)$v('id_usuario');
@@ -498,10 +620,14 @@ try {
             if (!q('SELECT 1 FROM usuario WHERE id_usuario = ? AND activo = TRUE', [$uid])) fail('Usuario no encontrado', 404);
             q('UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $v('correo'), $t, $pais, $ciudad, $barrio, $d, $uid]);
             if ($pw !== '') q('UPDATE usuario SET contrasena_hash = ? WHERE id_usuario = ?', [password_hash($pw, PASSWORD_DEFAULT), $uid]);
-            if ($uid === (int)$adm['id_usuario']) { $_SESSION['user']['nombre'] = $n; $_SESSION['user']['apellido'] = $ap; $_SESSION['user']['correo'] = $v('correo'); }
+            if ($uid === (int)$adm['id_usuario']) {
+                $_SESSION['user']['nombre'] = $n;
+                $_SESSION['user']['apellido'] = $ap;
+                $_SESSION['user']['correo'] = $v('correo');
+            }
             out();
 
-        /* ---------- Mi perfil (cliente o administrador sobre su propia cuenta) ---------- */
+            /* ---------- Mi perfil (cliente o administrador sobre su propia cuenta) ---------- */
         case 'perfil_obtener':
             $u = needLogin();
             out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, pais, ciudad, barrio, direccion, rol FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0] ?? null]);
@@ -509,11 +635,13 @@ try {
             $u = needLogin();
             [$n, $ap, $t, $pais, $ciudad, $barrio, $d] = datosPerfil();
             q('UPDATE usuario SET nombre = ?, apellido = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $t, $pais, $ciudad, $barrio, $d, $u['id_usuario']]);
-            $_SESSION['user']['nombre'] = $n; $_SESSION['user']['apellido'] = $ap;
+            $_SESSION['user']['nombre'] = $n;
+            $_SESSION['user']['apellido'] = $ap;
             out(['user' => $_SESSION['user']]);
         case 'cambiar_password':
             $u = needLogin();
-            $actual = $v('password_actual'); $nueva = $v('password_nueva');
+            $actual = $v('password_actual');
+            $nueva = $v('password_nueva');
             $hash = q('SELECT contrasena_hash FROM usuario WHERE id_usuario = ?', [$u['id_usuario']])[0]['contrasena_hash'] ?? '';
             $okPw = password_verify($actual, $hash) || (strpos($hash, '$2y$10$hashEjemplo') === 0 && $actual === '123456');
             if (!$okPw) fail('La contraseña actual no es correcta');
@@ -522,14 +650,17 @@ try {
             session_regenerate_id(true);
             out(['message' => 'Contraseña actualizada']);
 
-        /* ---------- Restaurar elementos dados de baja ---------- */
+            /* ---------- Restaurar elementos dados de baja ---------- */
         case 'listar_eliminados':
             needAdmin();
             switch ($v('tipo')) {
-                case 'producto':  out(['data' => q('SELECT p.id_producto, p.id_categoria, p.nombre, p.marca, c.nombre AS categoria, c.activa AS cat_activa, p.precio, p.stock, p.imagen_url
+                case 'producto':
+                    out(['data' => q('SELECT p.id_producto, p.id_categoria, p.nombre, p.marca, c.nombre AS categoria, c.activa AS cat_activa, p.precio, p.stock, p.imagen_url
                                                    FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria WHERE p.activo = FALSE ORDER BY p.nombre')]);
-                case 'categoria': out(['data' => q('SELECT id_categoria, nombre, descripcion FROM categoria WHERE activa = FALSE ORDER BY nombre')]);
-                case 'usuario':   out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, rol FROM usuario WHERE activo = FALSE ORDER BY nombre')]);
+                case 'categoria':
+                    out(['data' => q('SELECT id_categoria, nombre, descripcion FROM categoria WHERE activa = FALSE ORDER BY nombre')]);
+                case 'usuario':
+                    out(['data' => q('SELECT id_usuario, nombre, apellido, correo, telefono, rol FROM usuario WHERE activo = FALSE ORDER BY nombre')]);
             }
             fail('Tipo no válido');
         case 'restaurar':
@@ -540,18 +671,22 @@ try {
                     $r = q('SELECT c.activa FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria WHERE p.id_producto = ? AND p.activo = FALSE', [$rid])[0] ?? null;
                     if (!$r) fail('Producto no encontrado entre los eliminados', 404);
                     if (!(int)$r['activa']) fail('Primero restaura la categoría de este producto');
-                    q('UPDATE producto SET activo = TRUE WHERE id_producto = ?', [$rid]); break;
+                    q('UPDATE producto SET activo = TRUE WHERE id_producto = ?', [$rid]);
+                    break;
                 case 'categoria':
                     if (!q('SELECT 1 FROM categoria WHERE id_categoria = ? AND activa = FALSE', [$rid])) fail('Categoría no encontrada entre las eliminadas', 404);
-                    q('UPDATE categoria SET activa = TRUE WHERE id_categoria = ?', [$rid]); break;
+                    q('UPDATE categoria SET activa = TRUE WHERE id_categoria = ?', [$rid]);
+                    break;
                 case 'usuario':
                     if (!q('SELECT 1 FROM usuario WHERE id_usuario = ? AND activo = FALSE', [$rid])) fail('Usuario no encontrado entre los eliminados', 404);
-                    q('UPDATE usuario SET activo = TRUE WHERE id_usuario = ?', [$rid]); break;
-                default: fail('Tipo no válido');
+                    q('UPDATE usuario SET activo = TRUE WHERE id_usuario = ?', [$rid]);
+                    break;
+                default:
+                    fail('Tipo no válido');
             }
             out();
 
-        /* ---------- Subida de imágenes (administrador) ---------- */
+            /* ---------- Subida de imágenes (administrador) ---------- */
         case 'subir_imagen':
             needAdmin();
             $f = $_FILES['archivo'] ?? null;
@@ -567,12 +702,13 @@ try {
             if (!move_uploaded_file($f['tmp_name'], "$dir/$nombreArchivo")) fail('No se pudo guardar la imagen (revisa permisos de img/uploads)', 500);
             out(['ruta' => "img/uploads/$nombreArchivo"]);
 
-        /* ---------- Público: detalle de un producto ---------- */
+            /* ---------- Público: detalle de un producto ---------- */
         case 'detalle_producto':
             $r = q('SELECT * FROM v_catalogo_publico WHERE id_producto = ?', [(int)$v('id_producto')])[0] ?? null;
             $r ? out(['data' => $r]) : fail('Este producto ya no está disponible', 404);
 
-        default: fail('Acción no válida', 404);
+        default:
+            fail('Acción no válida', 404);
     }
 } catch (PDOException $e) {
     $i = $e->errorInfo ?? [];

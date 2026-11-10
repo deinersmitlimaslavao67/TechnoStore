@@ -20,7 +20,7 @@ ini_set('display_errors', '0');          // un aviso de PHP no debe corromper la
 date_default_timezone_set('America/Bogota');
 session_start();
 
-require_once __DIR__ . '/config.php';    // DB_HOST, DB_NAME, DB_USER, DB_PASS
+require_once __DIR__ . '/config.php';    // configuración compartida y conexión PDO
 require_once __DIR__ . '/xlsx.php';      // clase XlsxWriter
 
 function fallo(string $mensaje, int $codigo = 400): void {
@@ -37,13 +37,7 @@ $usuario = $_SESSION['user'] ?? null;
 if (!$usuario) fallo('Debes iniciar sesión para descargar reportes', 401);
 if (($usuario['rol'] ?? '') !== 'ADMINISTRADOR') fallo('Solo para administradores', 403);
 
-// Conexión (igual que api.php: DB_HOST puede traer puerto, ej. 127.0.0.1:3307)
-[$host, $port] = array_pad(explode(':', DB_HOST, 2), 2, '3306');
-try {
-    $db = new PDO("mysql:host=$host;port=$port;dbname=" . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-} catch (PDOException $e) {
-    error_log('[reporte.php] ' . $e->getMessage());
+if (!($db instanceof PDO)) {
     fallo('No se pudo conectar a MySQL', 500);
 }
 
