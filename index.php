@@ -647,7 +647,7 @@ tbody tr{transition:background .15s}
 
 <!-- MODAL DETALLE PEDIDO -->
 <div class="modal" id="mOrd"><div class="mc">
-  <h3 id="ordTitle">Detalle del pedido686868</h3>
+  <h3 id="ordTitle">Detalle del pedido696969</h3>
   <div class="oinfo" id="ordInfo"></div>
   <div class="tw"><table style="min-width:0"><thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead><tbody id="ordDet"></tbody></table></div>
   <div class="mf"><button class="btn ghost" data-close>Cerrar</button></div>
