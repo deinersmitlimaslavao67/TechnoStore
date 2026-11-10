@@ -1,1 +1,0 @@
-troleado putooo
