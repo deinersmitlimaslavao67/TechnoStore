@@ -1,0 +1,27 @@
+# Archivos y carpetas de configuración sensible
+config/
+.env
+.env.backup
+.env.production
+.env.local
+
+# Dependencias (Evita subir gigas de código de terceros)
+vendor/
+node_modules/
+
+# Registros y bases de datos locales
+*.log
+*.sqlite
+*.sqlite3
+
+# Configuraciones de editores de código (IDE)
+.vscode/
+.idea/
+
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
+
+#Script de bases de datos
+*.sql
+config.php
