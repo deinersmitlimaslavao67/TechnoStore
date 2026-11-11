@@ -1,8 +1,9 @@
-CREATE DATABASE IF NOT EXISTS catalogo_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE catalogo_ecommerce;
-
-
+-- En Hostinger, crea la base de datos en hPanel antes de importar este archivo.
+-- El nombre corresponde a la base que aparece en el pantallazo.
+-- Conserva los datos de ejemplo y todos los procedimientos y vistas originales.
+-- Para una instalación nueva, importa el archivo en una base vacía.
+SET NAMES utf8mb4;
+USE u750374615_technostore;
 
 -- TABLAS
 
@@ -14,11 +15,16 @@ CREATE TABLE IF NOT EXISTS usuario (
   correo          VARCHAR(120) NOT NULL UNIQUE,
   contrasena_hash VARCHAR(255) NOT NULL,
   telefono        VARCHAR(20)  NULL,
+  pais            VARCHAR(100) NULL,
+  ciudad          VARCHAR(100) NULL,
+  barrio          VARCHAR(100) NULL,
   direccion       VARCHAR(255) NULL,
   rol             ENUM('ADMINISTRADOR','CLIENTE') NOT NULL DEFAULT 'CLIENTE',
   fecha_registro  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  activo          BOOLEAN      NOT NULL DEFAULT TRUE
-) ENGINE=InnoDB;
+  activo          BOOLEAN      NOT NULL DEFAULT TRUE,
+  saldo_digital   DECIMAL(12,2) NOT NULL DEFAULT 10000000.00,
+  CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- CATEGORIA ----------
 CREATE TABLE IF NOT EXISTS categoria (
@@ -26,7 +32,7 @@ CREATE TABLE IF NOT EXISTS categoria (
   nombre       VARCHAR(80)  NOT NULL UNIQUE,
   descripcion  VARCHAR(255) NULL,
   activa       BOOLEAN      NOT NULL DEFAULT TRUE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- PRODUCTO ----------
 CREATE TABLE IF NOT EXISTS producto (
@@ -51,7 +57,7 @@ CREATE TABLE IF NOT EXISTS producto (
     ON UPDATE CASCADE ON DELETE RESTRICT,
   INDEX idx_producto_categoria (id_categoria),
   INDEX idx_producto_nombre (nombre)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- PEDIDO ----------
 CREATE TABLE IF NOT EXISTS pedido (
@@ -63,12 +69,15 @@ CREATE TABLE IF NOT EXISTS pedido (
   fecha_compra    DATETIME     NULL,
   metodo_pago     VARCHAR(40)  NULL,
   direccion_envio VARCHAR(255) NULL,
+  pais_envio      VARCHAR(100) NULL,
+  ciudad_envio    VARCHAR(100) NULL,
+  barrio_envio    VARCHAR(100) NULL,
   CONSTRAINT fk_pedido_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
     ON UPDATE CASCADE ON DELETE RESTRICT,
   INDEX idx_pedido_usuario (id_usuario),
   INDEX idx_pedido_estado (estado)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- DETALLE_PEDIDO ----------
 CREATE TABLE IF NOT EXISTS detalle_pedido (
@@ -76,7 +85,9 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
   id_pedido   INT NOT NULL,
   id_producto INT NOT NULL,
   cantidad    INT NOT NULL DEFAULT 1,
+  precio_unitario DECIMAL(12,2) NULL,
   CONSTRAINT chk_detalle_cantidad CHECK (cantidad > 0),
+  CONSTRAINT chk_detalle_precio CHECK (precio_unitario IS NULL OR precio_unitario >= 0),
   CONSTRAINT fk_detalle_pedido
     FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
     ON UPDATE CASCADE ON DELETE CASCADE,
@@ -84,7 +95,7 @@ CREATE TABLE IF NOT EXISTS detalle_pedido (
     FOREIGN KEY (id_producto) REFERENCES producto (id_producto)
     ON UPDATE CASCADE ON DELETE RESTRICT,
   UNIQUE KEY uq_detalle_pedido_producto (id_pedido, id_producto)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- PERSONALIZACION_TIENDA ----------
 CREATE TABLE IF NOT EXISTS personalizacion_tienda (
@@ -104,7 +115,67 @@ CREATE TABLE IF NOT EXISTS personalizacion_tienda (
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
     ON UPDATE CASCADE ON DELETE CASCADE,
   INDEX idx_personalizacion_usuario (id_usuario)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------- DINERO DIGITAL ----------
+CREATE TABLE IF NOT EXISTS transaccion_digital (
+  id_transaccion  INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario      INT NOT NULL,
+  id_pedido       INT NULL,
+  tipo            ENUM('RECARGA','PAGO','REEMBOLSO') NOT NULL,
+  monto           DECIMAL(12,2) NOT NULL,
+  saldo_anterior  DECIMAL(12,2) NOT NULL,
+  saldo_posterior DECIMAL(12,2) NOT NULL,
+  fecha           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chk_transaccion_monto CHECK (monto > 0),
+  CONSTRAINT fk_transaccion_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_transaccion_pedido
+    FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  INDEX idx_transaccion_usuario (id_usuario),
+  INDEX idx_transaccion_pedido (id_pedido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------- COMPROBANTES ----------
+CREATE TABLE IF NOT EXISTS comprobante (
+  id_comprobante INT AUTO_INCREMENT PRIMARY KEY,
+  numero         VARCHAR(20) NULL UNIQUE,
+  id_pedido      INT NOT NULL,
+  id_usuario     INT NOT NULL,
+  id_transaccion INT NOT NULL,
+  monto          DECIMAL(12,2) NOT NULL,
+  fecha_emision  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_comprobante_pedido
+    FOREIGN KEY (id_pedido) REFERENCES pedido (id_pedido)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_comprobante_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_comprobante_transaccion
+    FOREIGN KEY (id_transaccion) REFERENCES transaccion_digital (id_transaccion)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  UNIQUE KEY uq_comprobante_pedido (id_pedido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------- REPORTES DE FEEDBACK ----------
+CREATE TABLE IF NOT EXISTS feedback_reportes (
+  id_reporte     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id_usuario     INT NOT NULL,
+  tipo           ENUM('ERROR','SUGERENCIA') NOT NULL,
+  origen         ENUM('USUARIO','JAVASCRIPT') NOT NULL DEFAULT 'USUARIO',
+  detalle        TEXT NOT NULL,
+  stack_trace    TEXT NULL,
+  pagina         VARCHAR(500) NOT NULL DEFAULT '',
+  estado         ENUM('NUEVO','EN_REVISION','RESUELTO') NOT NULL DEFAULT 'NUEVO',
+  fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_feedback_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  INDEX idx_feedback_estado_fecha (estado, fecha_creacion),
+  INDEX idx_feedback_usuario_fecha (id_usuario, fecha_creacion)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 
@@ -162,6 +233,13 @@ INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad) VALUES
 (5, 3, 1),
 (5, 7, 1),
 (6, 2, 1);
+
+-- Fija el precio histórico de los pedidos de ejemplo ya confirmados.
+UPDATE detalle_pedido d
+JOIN pedido pe ON pe.id_pedido = d.id_pedido
+JOIN producto pr ON pr.id_producto = d.id_producto
+SET d.precio_unitario = pr.precio
+WHERE d.precio_unitario IS NULL AND pe.estado <> 'CARRITO';
 
 
 INSERT INTO personalizacion_tienda
@@ -254,8 +332,9 @@ WHERE p.activo = TRUE AND p.stock <= 5;
 -- 5.4 Detalle de pedidos con subtotales
 CREATE OR REPLACE VIEW v_detalle_pedido_completo AS
 SELECT d.id_detalle, d.id_pedido, pr.id_producto, pr.nombre AS producto,
-       pr.marca, d.cantidad, pr.precio AS precio_unitario,
-       (d.cantidad * pr.precio) AS subtotal
+       pr.marca, d.cantidad,
+       COALESCE(d.precio_unitario, pr.precio) AS precio_unitario,
+       (d.cantidad * COALESCE(d.precio_unitario, pr.precio)) AS subtotal
 FROM detalle_pedido d
 JOIN producto pr ON pr.id_producto = d.id_producto;
 
@@ -266,8 +345,6 @@ SELECT * FROM v_catalogo_publico ORDER BY categoria, nombre;
 SELECT * FROM v_productos_destacados;
 SELECT * FROM v_stock_bajo;
 SELECT * FROM v_detalle_pedido_completo WHERE id_pedido = 1;
-
-USE catalogo_ecommerce;
 
 DELIMITER $$
 
@@ -498,7 +575,7 @@ CREATE PROCEDURE sp_pedidos_usuario(
 )
 BEGIN
   SELECT pe.id_pedido, pe.estado, pe.fecha_creacion, pe.fecha_compra, pe.metodo_pago,
-         COALESCE(SUM(d.cantidad * pr.precio), 0) AS total
+         COALESCE(SUM(d.cantidad * COALESCE(d.precio_unitario, pr.precio)), 0) AS total
   FROM pedido pe
   LEFT JOIN detalle_pedido d ON d.id_pedido = pe.id_pedido
   LEFT JOIN producto pr ON pr.id_producto = d.id_producto
@@ -529,7 +606,8 @@ END$$
 DROP PROCEDURE IF EXISTS sp_obtener_tienda$$
 CREATE PROCEDURE sp_obtener_tienda()
 BEGIN
-  SELECT nombre_tienda, descripcion_tienda, logo_url, color_primario, color_secundario
+  SELECT nombre_tienda, descripcion_tienda, logo_url, banner_url,
+         color_primario, color_secundario, correo_contacto, telefono_contacto
   FROM personalizacion_tienda ORDER BY id_personalizacion LIMIT 1;
 END$$
 
