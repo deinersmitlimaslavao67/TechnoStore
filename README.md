@@ -32,17 +32,20 @@
 
 La arquitectura del proyecto se organiza de la siguiente manera:
 
-* **`index.php`**: Punto de entrada principal de la aplicación y vista de usuario/frontend.
-* **`index.php`**: Punto de entrada principal y vista de usuario.
+* **`index.php`**: Punto de entrada principal y vista de usuario; carga los scripts y estilos organizados en sus carpetas.
 * **`assets/css/styles.css`**: Estilos de la tienda, separados de la vista.
 * **`backend/endpoints/`**: Endpoints de la API y generación de reportes.
 * **`backend/config/`**: Configuración de la conexión a la base de datos.
 * **`backend/services/`**: Servicio de notificaciones por correo.
 * **`backend/libraries/`**: Generador de archivos Excel.
 * **`features/feedback/`**: Reportes autenticados de errores y sugerencias, captura de errores JavaScript, endpoint, estilos y esquema de almacenamiento. Los administradores pueden revisar y actualizar el estado de los reportes. La tabla se crea automáticamente al usar la función por primera vez; se aceptan hasta 20 reportes por usuario cada 10 minutos.
+* **`features/project-resources/`**: Visor web del video, documentos SRS, diagrama MER, PAC, herramientas de calidad y manuales. Las categorías se mantienen visibles aunque estén vacías; los archivos compatibles se detectan automáticamente en sus carpetas.
 * **`database/bdcatalogo.sql`**: Esquema de base de datos y datos iniciales.
 * **`banner/`** y **`logo/`**: Recursos gráficos de la tienda.
-* **`Anexos/`**: Documentación técnica del proyecto, incluyendo diagramas MER y las Especificaciones de Requisitos de Software (SRS en `Anexos/SRS/SRS_TechnoStore.pdf`).
+* **`Anexos/`**: Documentación del proyecto. Se conserva el SRS original en `Anexos/SRS/SRS_TechnoStore.pdf` y la edición 2.0 se publica en `Anexos/SRS/SRS_TechnoStore_v2.0.pdf`. El modelo de datos implementado está en `Anexos/MER/MER OFICIAL.drawio`.
+* **`PAC/`**: Carpeta para los documentos del plan de aseguramiento de calidad.
+* **`Herramientas de calidad/`**: Carpeta para los documentos de las herramientas de calidad aplicadas.
+* **`Anexos/Manuales/Usuario/`** y **`Anexos/Manuales/Tecnico/`**: Carpetas para agregar el manual de usuario y el manual técnico.
 * **`vendor/`**: Dependencias externas gestionadas mediante Composer (incluyendo PHPMailer).
 
 ---
@@ -73,3 +76,16 @@ Antes de iniciar, asegúrate de contar con lo siguiente:
 4. **Abrir la tienda:** visita `http://localhost/TechnoStore/`. Si la conexión falla, revisa el log de errores de PHP/Apache y confirma que MySQL está iniciado, que importaste el esquema y que las credenciales corresponden.
 
 El envío de correo está desactivado por defecto y no es necesario para usar la tienda. Para activarlo, configura `MAIL_ENABLED=true`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS` y `MAIL_FROM` en el entorno de Apache; luego instala las dependencias con Composer.
+
+## 📎 Recursos y anexos
+
+El botón **Ver anexos y video** del pie de página consulta el catálogo del servidor cada vez que se abre. Para agregar documentos, copia un archivo directamente en la carpeta de su categoría:
+
+* SRS: `Anexos/SRS/`.
+* Modelo entidad-relación: `Anexos/MER/`.
+* PAC: `PAC/`.
+* Herramientas de calidad: `Herramientas de calidad/`.
+* Manual de usuario: `Anexos/Manuales/Usuario/`.
+* Manual técnico: `Anexos/Manuales/Tecnico/`.
+
+Se listan archivos PDF, Draw.io, documentos de Office/OpenDocument, hojas de cálculo, presentaciones, CSV e imágenes JPG, PNG, GIF y WEBP. Los PDF e imágenes tienen vista previa; los diagramas Draw.io se muestran de forma interactiva y los otros tipos se ofrecen como enlace. No se publica el script de base de datos en el visor.

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Especificación de requisitos de software — TechnoStore 2.0</title>
+  <style>
+    @page { size: A4; margin: 20mm 18mm 19mm; }
+    * { box-sizing: border-box; }
+    body { color: #202b38; font: 10pt/1.48 Arial, sans-serif; }
+    h1, h2, h3 { color: #17466c; page-break-after: avoid; }
+    h1 { margin: 0 0 12pt; font-size: 25pt; }
+    h2 { margin: 23pt 0 9pt; padding-bottom: 4pt; border-bottom: 1px solid #8da6b8; font-size: 16pt; }
+    h3 { margin: 15pt 0 5pt; font-size: 12pt; }
+    p { margin: 5pt 0 8pt; }
+    li { margin: 3pt 0; }
+    table { width: 100%; margin: 9pt 0 14pt; border-collapse: collapse; page-break-inside: auto; }
+    thead { display: table-header-group; }
+    tr { page-break-inside: avoid; }
+    th, td { padding: 6pt; border: 1px solid #b8c5ce; vertical-align: top; }
+    th { background: #e8f0f5; color: #17466c; text-align: left; }
+    .cover { min-height: 225mm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+    .eyebrow { color: #526b7a; font-size: 11pt; letter-spacing: 1.4pt; text-transform: uppercase; }
+    .subtitle { color: #526b7a; font-size: 15pt; }
+    .meta { margin-top: 25pt; }
+    .note { padding: 9pt 11pt; border-left: 4px solid #1f6b8e; background: #eef5f8; }
+    .req { font-weight: bold; color: #17466c; }
+    .small { color: #526b7a; font-size: 9pt; }
+    .page-break { page-break-before: always; }
+    a { color: #17466c; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <p class="eyebrow">TechnoStore · Producto de software</p>
+    <h1>Especificación de requisitos de software</h1>
+    <p class="subtitle">SRS · Versión 2.0</p>
+    <table class="meta">
+      <tbody>
+        <tr><th>Producto</th><td>TechnoStore — tienda virtual de tecnología</td></tr>
+        <tr><th>Tipo de documento</th><td>Especificación de requisitos (SRS)</td></tr>
+        <tr><th>Versión</th><td>2.0</td></tr>
+        <tr><th>Estado</th><td>Edición consolidada a partir del sistema implementado</td></tr>
+        <tr><th>Idioma</th><td>Español</td></tr>
+        <tr><th>Documento anterior</th><td>SRS_TechnoStore.pdf (versión 1.0), conservado sin modificaciones</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Esta edición describe las capacidades observables en la interfaz, el código PHP/JavaScript, los endpoints y el esquema de datos del repositorio. No reemplaza ni sobrescribe la versión 1.0.</p>
+  </section>
+
+  <h2>1. Introducción</h2>
+  <h3>1.1 Propósito</h3>
+  <p>Este documento establece los requisitos funcionales y de calidad de TechnoStore 2.0. Sirve como referencia para las personas responsables del desarrollo, validación, operación, mantenimiento y evaluación del producto.</p>
+  <h3>1.2 Alcance del producto</h3>
+  <p>TechnoStore es una aplicación web para consultar y administrar un catálogo de productos tecnológicos y gestionar el ciclo de una compra. Incluye cuentas de cliente, catálogo, carrito persistido, pedidos, inventario, personalización de la tienda, saldo digital de demostración, reportes, avisos por correo configurables y un módulo de errores y sugerencias.</p>
+  <p>El sistema no constituye una pasarela bancaria ni un servicio de dinero electrónico. La aplicación registra opciones de pago comerciales; el único pago que debita automáticamente un saldo es el saldo digital interno, expresamente simulado.</p>
+  <h3>1.3 Convenciones y términos</h3>
+  <table>
+    <thead><tr><th>Término</th><th>Definición</th></tr></thead>
+    <tbody>
+      <tr><td>Cliente</td><td>Persona con cuenta que compra y consulta sus propios pedidos.</td></tr>
+      <tr><td>Administrador</td><td>Usuario autorizado para gestionar el catálogo, pedidos, cuentas y configuración.</td></tr>
+      <tr><td>Carrito</td><td>Pedido asociado a un cliente en estado CARRITO, todavía no confirmado.</td></tr>
+      <tr><td>Saldo digital</td><td>Saldo interno de demostración, sin valor monetario real y no transferible.</td></tr>
+      <tr><td>SRS</td><td>Software Requirements Specification; especificación de requisitos de software.</td></tr>
+      <tr><td>MER</td><td>Modelo entidad-relación de la base de datos.</td></tr>
+      <tr><td>Baja lógica</td><td>Desactivación de un registro que conserva sus datos para el historial y una posible restauración.</td></tr>
+    </tbody>
+  </table>
+  <h3>1.4 Referencias y fuentes de requisitos</h3>
+  <ul>
+    <li>Interfaz de usuario de <code>index.php</code> y comportamiento JavaScript de <code>assets/js/app.js</code>.</li>
+    <li>API y operaciones de negocio de <code>backend/endpoints/api.php</code>.</li>
+    <li>Esquema de <code>database/bdcatalogo.sql</code>, migraciones del backend y esquema de reportes de errores.</li>
+    <li>Términos y condiciones publicados en la aplicación.</li>
+    <li>Visor de recursos del proyecto y documentación conservada en la carpeta Anexos.</li>
+  </ul>
+
+  <h2>2. Descripción general</h2>
+  <h3>2.1 Contexto y arquitectura</h3>
+  <p>La solución es una aplicación web cliente-servidor. El navegador presenta HTML, CSS y JavaScript clásico; el servidor procesa solicitudes PHP; MySQL/InnoDB mantiene las cuentas, productos y operaciones. La instalación de referencia del repositorio utiliza Apache, PHP y MySQL (por ejemplo, XAMPP).</p>
+  <p>La aplicación integra servicios externos para consultar países y sugerir ciudades. Las notificaciones de pedido utilizan SMTP cuando se habilita mediante configuración de entorno. La disponibilidad y las respuestas de esos proveedores no dependen de TechnoStore.</p>
+  <h3>2.2 Clases de usuario</h3>
+  <table>
+    <thead><tr><th>Actor</th><th>Necesidades y permisos</th></tr></thead>
+    <tbody>
+      <tr><td>Visitante</td><td>Explorar productos, buscar y filtrar el catálogo, ver detalles, términos y recursos públicos; registrarse o iniciar sesión.</td></tr>
+      <tr><td>Cliente autenticado</td><td>Administrar su perfil y carrito; confirmar y consultar pedidos; gestionar su saldo de demostración; reportar errores y sugerencias.</td></tr>
+      <tr><td>Administrador autenticado</td><td>Gestionar productos, categorías, existencias, pedidos, clientes, roles, elementos dados de baja, apariencia de la tienda y reportes.</td></tr>
+      <tr><td>Servicio externo</td><td>Proporcionar sugerencias de país o ciudad, o transportar notificaciones de correo cuando estén habilitadas.</td></tr>
+    </tbody>
+  </table>
+  <h3>2.3 Entorno y restricciones</h3>
+  <ul>
+    <li>El servidor requiere PHP con soporte PDO para MySQL y una base MySQL compatible con las restricciones y procedimientos almacenados del proyecto.</li>
+    <li>Las rutas de medios y anexos son relativas a la instalación web; el servidor debe servir el directorio de recursos configurado.</li>
+    <li>La interfaz necesita JavaScript habilitado. Las sugerencias de ubicación y el SMTP dependen de conectividad y configuración externas.</li>
+    <li>La moneda mostrada para los pedidos es el peso colombiano (COP).</li>
+    <li>El acceso a operaciones administrativas está condicionado por el rol ADMINISTRADOR mantenido en la sesión y validado en el backend.</li>
+  </ul>
+  <h3>2.4 Suposiciones y dependencias</h3>
+  <ul>
+    <li>Los operadores preparan y mantienen una instancia MySQL y configuran sus credenciales en el entorno del servidor.</li>
+    <li>Los administradores cargan productos, existencias, precios y medios; el sistema no valida la autenticidad comercial del inventario.</li>
+    <li>La consulta de países/ciudades puede no estar disponible si falla el proveedor externo; el formulario requiere valores válidos para completar la dirección.</li>
+    <li>Los documentos PAC, de calidad y los manuales se incorporan al proyecto copiándolos en sus carpetas designadas.</li>
+  </ul>
+
+  <h2>3. Requisitos funcionales</h2>
+  <p>Salvo indicación distinta, los requisitos de administración requieren una sesión autenticada con rol ADMINISTRADOR. La aplicación comunica errores de validación y de negocio en la interfaz cuando la API los devuelve.</p>
+  <h3>3.1 Catálogo y navegación</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requisito</th><th>Prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>RF-001</td><td>El sistema mostrará los productos activos y disponibles con nombre, categoría, marca cuando exista, precio, existencias e imagen disponible.</td><td>Esencial</td></tr>
+      <tr><td>RF-002</td><td>El visitante podrá buscar productos por texto, filtrar por categoría y consultar productos destacados.</td><td>Esencial</td></tr>
+      <tr><td>RF-003</td><td>El visitante podrá abrir el detalle de un producto para consultar su descripción, especificaciones, precio e información de disponibilidad.</td><td>Esencial</td></tr>
+      <tr><td>RF-004</td><td>La tienda mostrará su nombre, logo, banner, descripción y colores a partir de la última configuración guardada; usará valores de presentación iniciales si no existe una personalización.</td><td>Importante</td></tr>
+      <tr><td>RF-005</td><td>La interfaz adaptará la navegación según la sesión; el acceso a carrito, perfil y pedidos requiere iniciar sesión.</td><td>Esencial</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 Cuentas y perfil</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requisito</th><th>Prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>RF-006</td><td>El visitante podrá registrarse con nombre, apellido, correo y contraseña; la contraseña tendrá al menos seis caracteres y el registro requerirá aceptar los términos publicados. El rol inicial será CLIENTE.</td><td>Esencial</td></tr>
+      <tr><td>RF-007</td><td>El cliente podrá iniciar y cerrar sesión. Una autenticación correcta renovará el identificador de sesión.</td><td>Esencial</td></tr>
+      <tr><td>RF-008</td><td>El cliente podrá consultar y actualizar sus datos de perfil, incluidos teléfono, país, ciudad, barrio y dirección, con las validaciones de longitud y formato vigentes.</td><td>Esencial</td></tr>
+      <tr><td>RF-009</td><td>El cliente podrá cambiar la contraseña proporcionando la contraseña actual y una contraseña nueva de al menos seis caracteres.</td><td>Importante</td></tr>
+      <tr><td>RF-010</td><td>Un administrador podrá consultar usuarios activos, modificar datos y roles, y dar de baja o restaurar usuarios. No podrá cambiar su propio rol ni dar de baja su propia cuenta.</td><td>Importante</td></tr>
+      <tr><td>RF-011</td><td>Las cuentas se conservarán cuando existan relaciones históricas. El administrador podrá inactivar y restaurar usuarios; la versión actual no ofrece una operación de eliminación autónoma desde el perfil del cliente.</td><td>Importante</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 Carrito, compra y pedidos</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requisito</th><th>Prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>RF-012</td><td>El cliente autenticado podrá agregar productos disponibles al carrito, cambiar cantidades, quitar líneas y vaciarlo. El servidor rechazará cantidades superiores al stock activo.</td><td>Esencial</td></tr>
+      <tr><td>RF-013</td><td>Antes de confirmar, el cliente proporcionará país, ciudad, barrio, dirección de envío válida y uno de los medios habilitados: tarjeta de crédito, PSE, Nequi, contraentrega o dinero digital.</td><td>Esencial</td></tr>
+      <tr><td>RF-014</td><td>Al confirmar un carrito no vacío, el sistema verificará nuevamente el inventario, descontará las cantidades, guardará los datos de envío y conservará el precio aplicado en cada línea de pedido.</td><td>Esencial</td></tr>
+      <tr><td>RF-015</td><td>Una compra con dinero digital suficiente pasará a PAGADO y emitirá un comprobante. Con los otros medios seleccionados, el pedido pasará a PENDIENTE y no se realizará un débito automático de una pasarela externa.</td><td>Esencial</td></tr>
+      <tr><td>RF-016</td><td>El cliente podrá consultar su historial de pedidos, estado, fechas, dirección y detalle de productos; no podrá consultar pedidos de otros clientes.</td><td>Esencial</td></tr>
+      <tr><td>RF-017</td><td>El cliente podrá cancelar sus pedidos mientras estén PENDIENTES. Al cancelarlos se restituirá el inventario. Los administradores podrán avanzar el estado por las transiciones permitidas y cancelar pedidos no entregados, con restitución del stock.</td><td>Esencial</td></tr>
+      <tr><td>RF-018</td><td>El sistema notificará por correo los eventos de pedido cuando la configuración SMTP esté habilitada y disponible.</td><td>Importante</td></tr>
+    </tbody>
+  </table>
+  <p class="note">El flujo administrativo de pedido permite las transiciones PENDIENTE → PAGADO → ENVIADO → ENTREGADO y cancelación de pedidos PENDIENTES, PAGADOS o ENVIADOS según las reglas del backend. Los pedidos ENTREGADOS no se pueden cancelar mediante ese flujo.</p>
+
+  <h3>3.4 Saldo digital y comprobantes</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requisito</th><th>Prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>RF-019</td><td>El cliente autenticado podrá consultar su saldo de demostración, recargarlo y consultar sus últimos 50 movimientos.</td><td>Importante</td></tr>
+      <tr><td>RF-020</td><td>Una recarga deberá ser positiva y no superar el límite configurado de 10 000 000 COP por operación; un administrador también podrá recargar el saldo de un usuario.</td><td>Importante</td></tr>
+      <tr><td>RF-021</td><td>El pago digital descontará el saldo dentro de la transacción de compra. Si el saldo es insuficiente, la operación no deberá dejar un pedido cobrado ni stock descontado.</td><td>Esencial</td></tr>
+      <tr><td>RF-022</td><td>El sistema guardará los movimientos RECARGA, PAGO y REEMBOLSO y sus saldos anterior y posterior; un pedido cancelado por administración generará devolución cuando su pago se haya realizado con dinero digital.</td><td>Importante</td></tr>
+      <tr><td>RF-023</td><td>El cliente podrá consultar el comprobante de sus pedidos digitales; un administrador podrá consultar cualquier comprobante disponible.</td><td>Importante</td></tr>
+    </tbody>
+  </table>
+  <p>El saldo digital es ficticio, únicamente utilizable en esta tienda, no transferible ni retirable. No representa una cuenta bancaria o fondos reales.</p>
+
+  <h3>3.5 Administración del catálogo y la tienda</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requisito</th><th>Prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>RF-024</td><td>El administrador podrá crear, consultar y actualizar productos con categoría, descripción, especificaciones, precio, stock, imagen y condición de producto destacado. El sistema rechazará precios o existencias negativos.</td><td>Esencial</td></tr>
+      <tr><td>RF-025</td><td>El administrador podrá crear, editar y dar de baja categorías; no podrá restaurar productos de una categoría que continúe inactiva.</td><td>Importante</td></tr>
+      <tr><td>RF-026</td><td>El administrador podrá actualizar existencias y consultar, por separado, productos, categorías y usuarios dados de baja, así como restaurar los que cumplan las dependencias de integridad.</td><td>Importante</td></tr>
+      <tr><td>RF-027</td><td>El administrador podrá guardar personalizaciones de nombre, logo, banner, colores, descripción y datos de contacto. Se validarán el formato hexadecimal de los colores y los datos de contacto.</td><td>Importante</td></tr>
+      <tr><td>RF-028</td><td>El administrador podrá cargar imágenes JPG, PNG, GIF o WEBP de hasta 2 MB; el servidor determinará la extensión a partir del contenido recibido y asignará un nombre aleatorio al archivo.</td><td>Importante</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.6 Reportes, feedback y recursos del proyecto</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requisito</th><th>Prioridad</th></tr></thead>
+    <tbody>
+      <tr><td>RF-029</td><td>El administrador podrá descargar en Excel reportes de pedidos entregados, pendientes y enviados; usuarios con y sin pedidos; y productos más y menos comprados.</td><td>Importante</td></tr>
+      <tr><td>RF-030</td><td>Un cliente autenticado podrá enviar un reporte clasificado como error o sugerencia. El servidor guardará el usuario, el tipo, la página de origen y el detalle.</td><td>Importante</td></tr>
+      <tr><td>RF-031</td><td>El módulo podrá registrar errores JavaScript automáticamente, incluyendo página y traza disponible. Los administradores podrán consultar los reportes recientes y cambiar su estado entre NUEVO, EN_REVISION y RESUELTO.</td><td>Importante</td></tr>
+      <tr><td>RF-032</td><td>El módulo de reportes aceptará detalles de hasta 2000 caracteres y limitará la tasa a 20 envíos por usuario cada 10 minutos.</td><td>Importante</td></tr>
+      <tr><td>RF-033</td><td>El visor público mostrará el video, el SRS, el MER y las opciones de PAC, herramientas de calidad y manuales de usuario/técnico incluso cuando sus carpetas aún no tengan archivos. Al incorporarse un documento compatible en su carpeta, el visor lo listará sin cambios de código.</td><td>Importante</td></tr>
+      <tr><td>RF-034</td><td>El visor ofrecerá vista previa en el navegador para archivos PDF e imágenes y vista interactiva para diagramas Draw.io; los otros formatos compatibles se ofrecerán como enlace al archivo.</td><td>Importante</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Requisitos de datos</h2>
+  <p>Las tablas siguientes representan la estructura del esquema inicial y las tablas/columnas que el backend crea o amplía durante sus migraciones. Los nombres se conservan como aparecen en MySQL.</p>
+  <table>
+    <thead><tr><th>Entidad</th><th>Datos principales</th><th>Relaciones y restricciones</th></tr></thead>
+    <tbody>
+      <tr><td>usuario</td><td>Identidad, correo único, hash de contraseña, teléfono, dirección, rol, estado activo, fecha de registro; país, ciudad, barrio y saldo digital.</td><td>Se relaciona con pedidos, personalizaciones, transacciones, comprobantes y reportes de feedback. El saldo no puede ser negativo.</td></tr>
+      <tr><td>categoria</td><td>Nombre único, descripción y estado activo.</td><td>Una categoría agrupa productos; los productos conservan su referencia por clave foránea.</td></tr>
+      <tr><td>producto</td><td>Nombre, marca, descripción, especificaciones, precio, stock, imagen, destacado, fechas y estado activo.</td><td>Pertenece a una categoría. Precio y stock no pueden ser negativos.</td></tr>
+      <tr><td>pedido</td><td>Cliente, estado, fechas, método de pago y dirección, país, ciudad y barrio de envío.</td><td>Contiene líneas de detalle y puede asociarse a movimientos digitales y comprobante.</td></tr>
+      <tr><td>detalle_pedido</td><td>Pedido, producto, cantidad y precio unitario histórico.</td><td>Una línea pertenece a un pedido y producto; cantidad positiva; combinación pedido/producto única.</td></tr>
+      <tr><td>personalizacion_tienda</td><td>Nombre, logo, colores, banner, descripción, correo y teléfono.</td><td>Cada versión es creada por un usuario; la interfaz aplica la personalización más reciente.</td></tr>
+      <tr><td>transaccion_digital</td><td>Usuario, pedido opcional, tipo de movimiento, monto, saldos anterior y posterior, fecha.</td><td>Registra RECARGA, PAGO o REEMBOLSO; monto positivo.</td></tr>
+      <tr><td>comprobante</td><td>Número, pedido, usuario, transacción, monto y fecha de emisión.</td><td>Como máximo un comprobante por pedido; sus referencias se conservan por claves foráneas.</td></tr>
+      <tr><td>feedback_reportes</td><td>Usuario, tipo, origen, detalle, traza JavaScript opcional, página, estado y fecha.</td><td>El usuario debe existir; índices apoyan la consulta por estado, fecha y usuario.</td></tr>
+    </tbody>
+  </table>
+  <h3>4.1 Retención y consistencia</h3>
+  <ul>
+    <li>La base de datos utiliza claves foráneas y restricciones para evitar relaciones huérfanas y cantidades, precios o saldos inválidos.</li>
+    <li>El precio unitario de cada línea queda congelado al confirmar la compra para mantener el valor histórico del pedido.</li>
+    <li>Las operaciones de confirmación, cobro con saldo y cancelación aplican transacciones para mantener coherentes stock, pedido y saldo.</li>
+    <li>Los elementos de catálogo y usuarios pueden conservarse mediante baja lógica para no romper el historial.</li>
+    <li>El backend incorpora columnas y tablas auxiliares durante las solicitudes; la migración es idempotente por sesión. La configuración de producción debe contar con permisos de migración de esquema.</li>
+  </ul>
+
+  <h2>5. Requisitos de interfaces externas</h2>
+  <h3>5.1 Interfaz de usuario</h3>
+  <p>La aplicación se presenta en español y adapta sus vistas a los roles y la sesión. Los formularios muestran controles de validación y mensajes de operación; los modales y paneles exponen acciones identificables y se pueden cerrar mediante el teclado cuando así lo implementa la vista.</p>
+  <h3>5.2 API interna</h3>
+  <p>El cliente web intercambia datos con endpoints PHP mediante solicitudes HTTP y JSON/formularios. Las respuestas incluyen el resultado o un mensaje de error y un estado HTTP acorde con la solicitud. El identificador de usuario se obtiene de la sesión del servidor, no de un identificador libre enviado por el cliente para operaciones propias.</p>
+  <h3>5.3 Servicios externos</h3>
+  <ul>
+    <li>REST Countries proporciona la lista de países cuando está disponible.</li>
+    <li>Nominatim/OpenStreetMap proporciona sugerencias de ciudades asociadas al país seleccionado.</li>
+    <li>Un servidor SMTP envía avisos de pedido solo si la variable <code>MAIL_ENABLED</code> y el resto de parámetros de correo están configurados.</li>
+  </ul>
+
+  <h2>6. Requisitos no funcionales</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Atributo</th><th>Requisito</th></tr></thead>
+    <tbody>
+      <tr><td>RNF-001</td><td>Seguridad</td><td>Las contraseñas persistidas deberán almacenarse como hashes; las credenciales de conexión y correo se suministrarán mediante configuración del entorno y no se expondrán en la interfaz.</td></tr>
+      <tr><td>RNF-002</td><td>Autorización</td><td>El backend validará sesión y rol para cada operación privada; un cliente solo podrá consultar sus datos, pedidos, movimientos y comprobantes.</td></tr>
+      <tr><td>RNF-003</td><td>Integridad</td><td>Las escrituras financieras y de inventario se ejecutarán con transacciones y restricciones de base de datos que eviten dobles cobros o existencias negativas.</td></tr>
+      <tr><td>RNF-004</td><td>Validación</td><td>Los datos de entrada se validarán en el servidor aunque exista validación equivalente en el navegador; los accesos a datos utilizarán parámetros o procedimientos del backend.</td></tr>
+      <tr><td>RNF-005</td><td>Privacidad</td><td>Se protegerán los datos del perfil y de compra según el control de acceso de la aplicación. La recopilación de reportes requerirá sesión autenticada.</td></tr>
+      <tr><td>RNF-006</td><td>Usabilidad</td><td>El contenido y los mensajes estarán en español; las acciones de catálogo, compra y administración serán coherentes con el rol del usuario.</td></tr>
+      <tr><td>RNF-007</td><td>Compatibilidad</td><td>La aplicación se ejecutará en navegadores modernos con JavaScript, CSS, HTML5 y soporte para formularios y reproducción de video MP4.</td></tr>
+      <tr><td>RNF-008</td><td>Mantenibilidad</td><td>La interfaz, los estilos, los endpoints, la configuración, los módulos funcionales y los documentos del proyecto se mantendrán en sus carpetas separadas.</td></tr>
+      <tr><td>RNF-009</td><td>Disponibilidad</td><td>La aplicación requiere que Apache, PHP, MySQL y los recursos estáticos estén activos. No se define un SLA de disponibilidad ni una estrategia de alta disponibilidad en el repositorio.</td></tr>
+      <tr><td>RNF-010</td><td>Rendimiento</td><td>Las vistas y operaciones deberán responder de acuerdo con la capacidad del servidor y los servicios externos. No se establece un umbral cuantitativo de rendimiento en la implementación actual.</td></tr>
+      <tr><td>RNF-011</td><td>Extensibilidad</td><td>El visor de anexos permitirá incorporar documentos mediante archivos en directorios autorizados, sin exponer directorios ajenos a la lista configurada.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7. Reglas de negocio y estados</h2>
+  <ul>
+    <li>Estados del pedido: CARRITO, PENDIENTE, PAGADO, ENVIADO, ENTREGADO y CANCELADO. CARRITO representa una compra aún no confirmada.</li>
+    <li>Un pedido confirmado consume existencias y guarda el precio unitario aplicado. Si falla el cobro digital, la transacción revierte los cambios relacionados.</li>
+    <li>Un cliente solo puede cancelar sus pedidos PENDIENTES. La cancelación administrativa permitida devuelve las unidades al stock; un pedido pagado con saldo digital también recibe el reembolso correspondiente.</li>
+    <li>Los medios Tarjeta crédito, PSE, Nequi y Contraentrega se guardan como método elegido, sin procesamiento de pago integrado en la aplicación.</li>
+    <li>El medio Dinero digital debita el saldo virtual al confirmar y crea un comprobante asociado al pedido.</li>
+    <li>Las bajas de productos, categorías y usuarios son lógicas; el borrado físico está restringido por relaciones de integridad.</li>
+    <li>Solo se puede restaurar un producto cuando su categoría está activa.</li>
+    <li>Los reportes de feedback pertenecen a una cuenta; la consulta administrativa muestra un máximo de 200 registros recientes y permite actualizar su estado.</li>
+  </ul>
+
+  <h2>8. Flujos principales y criterios de aceptación</h2>
+  <h3>8.1 Registro y acceso</h3>
+  <ol>
+    <li>El visitante completa los campos obligatorios y acepta los términos.</li>
+    <li>El servidor valida correo, longitudes y mínimo de contraseña y crea la cuenta con rol CLIENTE.</li>
+    <li>La aplicación inicia la sesión del cliente y actualiza la navegación.</li>
+    <li>Un correo inválido, una contraseña corta o la falta de aceptación debe impedir el registro y mostrar un mensaje.</li>
+  </ol>
+  <h3>8.2 Compra con saldo digital</h3>
+  <ol>
+    <li>El cliente agrega un producto disponible al carrito y completa la dirección de entrega.</li>
+    <li>Al confirmar, el servidor valida estado del carrito, cantidades y stock actual.</li>
+    <li>El sistema congela los precios y descuenta las unidades dentro de una transacción.</li>
+    <li>Con saldo suficiente, se registra el pago, se emite el comprobante y el pedido queda PAGADO.</li>
+    <li>Con saldo insuficiente, se informa el error, se conserva íntegro el estado anterior del pedido y no se descuenta el stock.</li>
+  </ol>
+  <h3>8.3 Incorporación de anexos</h3>
+  <ol>
+    <li>El responsable copia el documento compatible en la carpeta de su categoría: SRS, MER, PAC, herramientas de calidad o manual correspondiente.</li>
+    <li>Al abrir el visor, el catálogo se consulta al servidor y la opción de la categoría permanece disponible aunque no existan documentos.</li>
+    <li>Los PDF e imágenes permitidos ofrecen vista previa; los diagramas Draw.io ofrecen una vista interactiva y otros formatos se abren mediante su enlace.</li>
+  </ol>
+
+  <h2>9. Manejo de errores y límites</h2>
+  <ul>
+    <li>Una base de datos inaccesible impide completar operaciones que dependen de ella; el servidor devuelve un error y registra los detalles técnicos en el log.</li>
+    <li>El stock cambiante, los carritos vacíos, las direcciones incompletas, los permisos insuficientes y los datos inválidos deben detener la operación sin confirmar una compra parcial.</li>
+    <li>Si falla la consulta geográfica, las sugerencias pueden no estar disponibles. La integración externa no sustituye las validaciones obligatorias del pedido.</li>
+    <li>Los avisos por correo pueden no enviarse si SMTP está deshabilitado o no responde; el envío no reemplaza el registro del estado del pedido.</li>
+    <li>El módulo de feedback impide envíos vacíos, demasiado largos o superiores al límite por usuario y ventana temporal, e informa los fallos al solicitante.</li>
+    <li>El visor solo descubre archivos con extensiones permitidas en los directorios configurados; no publica scripts SQL ni recorre subdirectorios arbitrarios.</li>
+  </ul>
+
+  <h2>10. Alcance no implementado y asuntos por confirmar</h2>
+  <p>Los siguientes elementos no deben considerarse funcionalidades entregadas por esta versión, a menos que se desarrollen y validen posteriormente:</p>
+  <ul>
+    <li>Integración de cobro real con tarjetas, PSE, Nequi u otra pasarela; esos métodos no realizan cargos automáticos.</li>
+    <li>Seguimiento logístico en tiempo real, tarifas de transporte calculadas, transportadora integrada o tiempos de entrega garantizados.</li>
+    <li>Restablecimiento de contraseña por correo, autenticación multifactor, infraestructura de backups, monitoreo o SLA de producción.</li>
+    <li>Conversión o vista previa en navegador de todos los formatos Office; los documentos no previsualizados se ofrecen como enlace.</li>
+    <li>Políticas formales de retención, recuperación ante desastres y límites de rendimiento medidos; requieren definición operativa.</li>
+  </ul>
+
+  <h2>11. Trazabilidad de componentes</h2>
+  <table>
+    <thead><tr><th>Área de requisitos</th><th>Componentes de referencia</th></tr></thead>
+    <tbody>
+      <tr><td>Catálogo, formularios, navegación y administración</td><td><code>index.php</code>, <code>assets/js/app.js</code></td></tr>
+      <tr><td>Sesiones, compras, inventario, permisos, perfil y saldo</td><td><code>backend/endpoints/api.php</code>, <code>database/bdcatalogo.sql</code></td></tr>
+      <tr><td>Conexión, variables de entorno y correo</td><td><code>backend/config/config.php</code> y servicios de backend</td></tr>
+      <tr><td>Reportes de error y sugerencias</td><td><code>features/feedback/endpoint.php</code>, <code>features/feedback/schema.sql</code> y su interfaz</td></tr>
+      <tr><td>Catálogo dinámico de anexos</td><td><code>features/project-resources/</code>, <code>PAC/</code>, <code>Herramientas de calidad/</code> y <code>Anexos/Manuales/</code></td></tr>
+      <tr><td>Modelo de datos</td><td><code>database/bdcatalogo.sql</code>, migraciones de <code>backend/endpoints/api.php</code> y <code>features/feedback/schema.sql</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>12. Aprobación y control de cambios</h2>
+  <p>La versión 2.0 consolida los requisitos identificables en el producto y no altera el PDF SRS de versión 1.0. Los cambios posteriores deberán registrar una nueva versión y revisar sus criterios de aceptación, el modelo de datos y la implementación asociada.</p>
+</body>
+</html>

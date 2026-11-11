@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css"><link rel="stylesheet" href="features/feedback/feedback.css">
+  <link rel="stylesheet" href="assets/css/styles.css"><link rel="stylesheet" href="features/feedback/feedback.css"><link rel="stylesheet" href="features/project-resources/resources.css">
 </head>
 
 <body>
@@ -995,7 +995,6 @@
                 }
               }
   </script>
-  <script src="assets/js/app.js"></script><script src="features/feedback/feedback.js"></script>
+  <script src="assets/js/app.js"></script><script src="features/feedback/feedback.js"></script><script src="features/project-resources/resources.js"></script>
 </body>
-
 </html>

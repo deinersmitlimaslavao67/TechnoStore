@@ -1,0 +1,162 @@
+.resources-link {
+  margin-left: .5rem
+}
+
+.resources-modal {
+  z-index: 125
+}
+
+.resources-modal .mc {
+  width: min(1120px, 100%);
+  max-width: 1120px;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem
+}
+
+.resources-head,
+.resources-actions,
+.resources-tabs {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  flex-wrap: wrap
+}
+
+.resources-head {
+  justify-content: space-between
+}
+
+.resources-head h3 {
+  margin: 0
+}
+
+.resources-tabs {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: .6rem;
+  overflow-x: auto
+}
+
+.resources-tabs button[aria-selected="true"] {
+  background: var(--brand-d)
+}
+
+.resources-content {
+  min-height: 280px;
+  flex: 1;
+  overflow: auto
+}
+
+.resources-pane {
+  display: none;
+  min-height: 280px
+}
+
+.resources-pane.on {
+  display: block
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: .75rem
+}
+
+.resources-card {
+  min-width: 0;
+  padding: .9rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface, #fff)
+}
+
+.resources-card h4 {
+  margin: 0 0 .4rem;
+  overflow-wrap: anywhere
+}
+
+.resources-format {
+  margin: 0 0 .7rem;
+  color: var(--mut);
+  font-size: .78rem;
+  font-weight: 700
+}
+
+.resources-actions a {
+  color: var(--brand, #1f4e79)
+}
+
+.resources-preview {
+  margin-top: 1rem
+}
+
+.resources-frame {
+  display: block;
+  width: 100%;
+  height: min(66vh, 680px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff
+}
+
+.resources-diagram {
+  max-height: 66vh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff
+}
+
+.resources-diagram svg {
+  display: block;
+  max-width: none
+}
+
+.resources-image {
+  display: block;
+  max-width: 100%;
+  max-height: 66vh;
+  margin: 0 auto;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff
+}
+
+.resources-video {
+  display: block;
+  width: 100%;
+  max-height: 66vh;
+  background: #111;
+  border-radius: 8px
+}
+
+.resources-status {
+  min-height: 1.4rem;
+  color: var(--mut);
+  font-size: .9rem
+}
+
+@media (max-width: 600px) {
+  .resources-modal {
+    padding: .5rem
+  }
+
+  .resources-modal .mc {
+    max-height: 96vh;
+    padding: 1rem
+  }
+
+  .resources-frame {
+    height: 58vh
+  }
+
+  .resources-diagram {
+    max-height: 58vh
+  }
+
+  .resources-tabs {
+    flex-wrap: nowrap
+  }
+}
