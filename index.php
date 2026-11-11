@@ -379,8 +379,7 @@
 
         <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
         <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
-
-
+        
       </form>
     </div>
   </div>
@@ -791,8 +790,6 @@
 
     /* Cliente API: GET para lecturas, POST (FormData) para escrituras */
     const API_SILENT = new Set(['obtener_ciudades', 'sesion']); // sin spinner (autocompletado / verificación)
-
-
     /* ---------- Overlay de sesión ---------- */
     function fxLoading(txt, sub = 'Un momento por favor…') {
       const f = $('#authFx');
@@ -978,8 +975,6 @@
       if (e.key === 'Escape') $$('.modal.on').forEach(m => m.classList.remove('on'));
     });
 
-
-
             /* ---------- Inicio ---------- */
             async function syncSession() { // la sesión real vive en el servidor
                 const r = await api('sesion');
@@ -995,6 +990,11 @@
                 }
               }
   </script>
-  <script src="assets/js/app.js"></script><script src="features/feedback/feedback.js"></script><script src="features/project-resources/resources.js"></script>
+  <script src="assets/js/app-session-wallet.js"></script>
+  <script src="assets/js/app-catalog-cart.js"></script>
+  <script src="assets/js/app-orders-admin.js"></script>
+  <script src="assets/js/app-profile-shared.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="features/feedback/feedback.js"></script><script src="features/project-resources/resources.js"></script>
 </body>
 </html>
