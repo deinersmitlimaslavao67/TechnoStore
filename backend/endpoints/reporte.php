@@ -20,8 +20,8 @@ ini_set('display_errors', '0');          // un aviso de PHP no debe corromper la
 date_default_timezone_set('America/Bogota');
 session_start();
 
-require_once __DIR__ . '/config.php';    // configuración compartida y conexión PDO
-require_once __DIR__ . '/xlsx.php';      // clase XlsxWriter
+require_once __DIR__ . '/../config/config.php';    // configuración compartida y conexión PDO
+require_once __DIR__ . '/../libraries/xlsx.php';    // clase XlsxWriter
 
 function fallo(string $mensaje, int $codigo = 400): void {
     http_response_code($codigo);

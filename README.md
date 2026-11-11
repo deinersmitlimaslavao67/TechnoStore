@@ -33,12 +33,15 @@
 La arquitectura del proyecto se organiza de la siguiente manera:
 
 * **`index.php`**: Punto de entrada principal de la aplicación y vista de usuario/frontend.
-* **`api.php`**: Endpoints backend para el manejo de peticiones asíncronas y lógica de datos.
-* **`config.php`**: Archivo central de configuración de la conexión a la base de datos y parámetros del sistema.
-* **`mailer.php`**: Componente de gestión y envío de correos electrónicos integrado con PHPMailer.
-* **`reporte.php`**: Módulo para la generación y visualización de reportes del sistema.
-* **`xlsx.php`**: Utilidad encargada del procesamiento y exportación de archivos en formato Excel.
-* **`bdcatalogo.sql`**: Script SQL con el esquema de la base de datos y datos iniciales del catálogo.
+* **`index.php`**: Punto de entrada principal y vista de usuario.
+* **`assets/css/styles.css`**: Estilos de la tienda, separados de la vista.
+* **`backend/endpoints/`**: Endpoints de la API y generación de reportes.
+* **`backend/config/`**: Configuración de la conexión a la base de datos.
+* **`backend/services/`**: Servicio de notificaciones por correo.
+* **`backend/libraries/`**: Generador de archivos Excel.
+* **`features/feedback/`**: Reportes autenticados de errores y sugerencias, captura de errores JavaScript, endpoint, estilos y esquema de almacenamiento. Los administradores pueden revisar y actualizar el estado de los reportes. La tabla se crea automáticamente al usar la función por primera vez; se aceptan hasta 20 reportes por usuario cada 10 minutos.
+* **`database/bdcatalogo.sql`**: Esquema de base de datos y datos iniciales.
+* **`banner/`** y **`logo/`**: Recursos gráficos de la tienda.
 * **`Anexos/`**: Documentación técnica del proyecto, incluyendo diagramas MER y las Especificaciones de Requisitos de Software (SRS en `Anexos/SRS/SRS_TechnoStore.pdf`).
 * **`vendor/`**: Dependencias externas gestionadas mediante Composer (incluyendo PHPMailer).
 
@@ -63,7 +66,7 @@ Antes de iniciar, asegúrate de contar con lo siguiente:
    composer install
    ```
 
-2. **Crear la base de datos:** inicia Apache y MySQL en XAMPP, abre `http://localhost/phpmyadmin` e importa `bdcatalogo.sql`. El script crea la base `catalogo_ecommerce` y las tablas, vistas, procedimientos y datos de ejemplo.
+2. **Crear la base de datos:** inicia Apache y MySQL en XAMPP, abre `http://localhost/phpmyadmin` e importa `database/bdcatalogo.sql`. El script crea la base `catalogo_ecommerce` y las tablas, vistas, procedimientos y datos de ejemplo.
 
 3. **Configurar la conexión:** por defecto se usan `127.0.0.1:3306`, la base `catalogo_ecommerce`, el usuario `root` y contraseña vacía (valores estándar de XAMPP). Si tu MySQL usa otros valores, configura en el entorno de Apache `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASS`. La contraseña no debe guardarse en Git.
 

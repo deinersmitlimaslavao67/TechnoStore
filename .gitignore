@@ -29,3 +29,4 @@ config.php
 # La configuración sin secretos y el esquema inicial son necesarios para desplegar
 !config.php
 !bdcatalogo.sql
+!features/feedback/schema.sql

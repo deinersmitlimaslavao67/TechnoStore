@@ -2,8 +2,8 @@
 // API de la tienda: usa procedimientos almacenados y vistas de MySQL.
 session_start();
 header('Content-Type: application/json; charset=utf-8');
-require __DIR__ . '/config.php';
-require __DIR__ . '/mailer.php';   // notificaciones por correo
+require __DIR__ . '/../config/config.php';
+require __DIR__ . '/../services/mailer.php';   // notificaciones por correo
 
 function out(array $d = [])
 {

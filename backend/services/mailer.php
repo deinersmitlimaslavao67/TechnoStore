@@ -4,7 +4,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as MailException;
 
-$autoload = __DIR__ . '/vendor/autoload.php';
+$autoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
 if (is_file($autoload)) {
     require_once $autoload;
 }
