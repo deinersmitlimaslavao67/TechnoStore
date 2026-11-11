@@ -2,7 +2,7 @@
 -- El nombre corresponde a la base que aparece en el pantallazo.
 -- Conserva los datos de ejemplo y todos los procedimientos y vistas originales.
 -- Para una instalación nueva, importa el archivo en una base vacía.
-SET NAMES utf8mb4;
+
 USE u750374615_technostore;
 
 -- TABLAS
