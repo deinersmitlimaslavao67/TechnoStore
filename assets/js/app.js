@@ -183,7 +183,15 @@
             };
 
             /* ---------- Animaciones al hacer scroll ---------- */
-            document.addEventListener('scroll', () => $('header').classList.toggle('stuck', scrollY > 8), {
+            let lastScrollY = window.scrollY;
+            document.addEventListener('scroll', () => {
+              const currentScrollY = window.scrollY,
+                header = $('header');
+              header.classList.toggle('stuck', currentScrollY > 8);
+              if (currentScrollY <= 8 || currentScrollY < lastScrollY) header.classList.remove('scroll-hidden');
+              else if (currentScrollY > lastScrollY) header.classList.add('scroll-hidden');
+              lastScrollY = currentScrollY;
+            }, {
               passive: true
             });
             if (!reduceMotion() && 'IntersectionObserver' in window) {

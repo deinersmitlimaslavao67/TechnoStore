@@ -663,7 +663,7 @@
   <div id="toasts" aria-live="polite"></div>
   <div id="loader" role="status" aria-live="polite" aria-hidden="true">
     <div class="lbox">
-      <div class="spinner"></div><span id="loaderMsg">Cargando…</span>
+      <div class="spinner"></div><span id="loaderMsg">TechnoStore.</span>
     </div>
   </div>
 
@@ -757,7 +757,7 @@
             setTimeout(() => {
               if (n === 0) {
                 paint(false);
-                $('#loaderMsg').textContent = 'Cargando…';
+                $('#loaderMsg').textContent = 'TechnoStore.';
               }
             }, Math.max(0, 300 - (Date.now() - shownAt)));
         },
