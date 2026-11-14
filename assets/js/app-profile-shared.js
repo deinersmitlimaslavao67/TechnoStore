@@ -141,7 +141,7 @@
               if (!r.success) return toast(r.error || 'No se pudo completar la acción', true);
               close('mDel');
               if (tipo === 'pedido_admin') {
-                toast(`Pedido #${id} cancelado; stock devuelto`);
+                toast(r.correo_enviado ? `Pedido #${id} cancelado; stock devuelto` : `Pedido #${id} cancelado; no se pudo enviar el correo. Revisa SMTP y los permisos del destinatario.`, !r.correo_enviado);
                 loadAdminOrders();
                 loadProds();
                 return loadList('listar_catalogo');
@@ -151,7 +151,7 @@
                 return loadCart();
               }
               if (tipo === 'pedido') {
-                toast('Pedido cancelado');
+                toast(r.correo_enviado ? 'Pedido cancelado' : 'Pedido cancelado; no se pudo enviar el correo. Revisa SMTP y los permisos del destinatario.', !r.correo_enviado);
                 loadOrders();
                 return loadList('listar_catalogo');
               }
@@ -193,4 +193,3 @@
                 b.textContent = txt;
               }
             });
-

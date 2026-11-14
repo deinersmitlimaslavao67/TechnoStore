@@ -2381,4 +2381,189 @@
         stroke-dashoffset: 0
       }
     }
+
+    /* ===== Catálogo y autenticación ===== */
+    #v-catalog > .sh {
+      margin-bottom: 1.1rem
+    }
+
+    #v-catalog > .sh h2 {
+      font-size: clamp(1.35rem, 2.5vw, 1.7rem)
+    }
+
+    #v-catalog > .sh span {
+      padding: .3rem .7rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      font-size: .82rem;
+      white-space: nowrap
+    }
+
+    #v-catalog .tools {
+      align-items: center;
+      padding: .75rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12)
+    }
+
+    #v-catalog .tools input,
+    #v-catalog .tools select {
+      min-height: 44px;
+      border-radius: 9px
+    }
+
+    #v-catalog .tools input:focus,
+    #v-catalog .tools select:focus {
+      border-color: var(--acc);
+      outline: 3px solid rgba(90, 176, 255, .16);
+      outline-offset: 0
+    }
+
+    #v-catalog #bSearch {
+      border-radius: 9px
+    }
+
+    #v-catalog .chips {
+      gap: .55rem;
+      margin: .1rem 0 1.35rem
+    }
+
+    #v-catalog .chip {
+      padding: .45rem .9rem;
+      transition: background .2s, color .2s, border-color .2s, transform .2s
+    }
+
+    #v-catalog .chip:hover {
+      transform: translateY(-1px)
+    }
+
+    #v-catalog .grid {
+      gap: 1.25rem
+    }
+
+    #v-catalog .card {
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+      transition: border-color .25s, box-shadow .25s, transform .25s
+    }
+
+    #v-catalog .card:hover {
+      border-color: rgba(90, 176, 255, .55);
+      box-shadow: 0 16px 34px rgba(0, 0, 0, .25);
+      transform: translateY(-4px)
+    }
+
+    #v-catalog .card .ph {
+      background: radial-gradient(ellipse at center, var(--card2), var(--card));
+    }
+
+    #v-catalog .card .ph img {
+      object-fit: contain;
+      padding: 1.15rem
+    }
+
+    #v-catalog .card .b {
+      padding: 1rem 1.1rem;
+      gap: .3rem
+    }
+
+    #v-catalog .card .m:first-child {
+      color: var(--acc);
+      font-size: .72rem;
+      letter-spacing: .08em
+    }
+
+    #v-catalog .card h3 {
+      display: -webkit-box;
+      min-height: 2.6em;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-height: 1.3
+    }
+
+    #v-catalog .card .p {
+      margin: .25rem 0 0;
+      color: var(--acc);
+      font-size: 1.3rem
+    }
+
+    #v-catalog .card .m:last-child {
+      font-size: .8rem
+    }
+
+    #v-catalog .card .f {
+      gap: .55rem;
+      padding: .85rem 1.1rem 1.05rem
+    }
+
+    #v-catalog .card .f .btn {
+      min-height: 42px;
+      border-radius: 9px
+    }
+
+    #v-catalog .tag {
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .2)
+    }
+
+    #mAuth.modal {
+      align-items: flex-start;
+      overflow-y: auto;
+      overscroll-behavior: contain
+    }
+
+    #mAuth .mc {
+      max-width: 560px;
+      max-height: none;
+      margin: auto;
+      overflow: visible;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .42)
+    }
+
+    #mAuth .tabs {
+      overflow-y: hidden
+    }
+
+    @media(max-width:520px) {
+      #v-catalog > .sh {
+        align-items: flex-start;
+        gap: .7rem;
+        flex-wrap: wrap
+      }
+
+      #v-catalog .tools {
+        padding: .6rem
+      }
+
+      #v-catalog .tools input {
+        flex-basis: 100%
+      }
+
+      #mAuth.modal {
+        padding: .75rem
+      }
+
+      #mAuth .mc {
+        padding: 1.1rem;
+        border-radius: 14px
+      }
+    }
+
+    @media(max-height:480px) {
+      #mAuth .mc {
+        padding: 1rem
+      }
+
+      #mAuth .tabs {
+        margin-bottom: .75rem
+      }
+
+      #mAuth .fg {
+        margin-bottom: .65rem
+      }
+    }
   

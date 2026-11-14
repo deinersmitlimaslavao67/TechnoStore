@@ -17,8 +17,50 @@ const MAIL_ESTADOS = [
     'CANCELADO' => ['Pedido cancelado',  '#B91C1C', 'Tu pedido fue cancelado. Si no lo solicitaste tú, comunícate con la tienda.'],
 ];
 
-function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function cop($n): string { return '$' . number_format((float)$n, 0, ',', '.'); }
+
+function configurarMailer(PHPMailer $m, string $senderName): void {
+    $m->isSMTP();
+    $m->Host       = MAIL_HOST;
+    $m->SMTPAuth   = true;
+    $m->Username   = MAIL_USER;
+    $m->Password   = MAIL_PASS;
+    $m->SMTPSecure = MAIL_ENCRYPTION === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+    $m->Port       = MAIL_PORT;
+    $m->Timeout    = 10;
+    $m->CharSet    = 'UTF-8';
+    $m->setFrom(MAIL_FROM, $senderName ?: MAIL_FROM_NAME);
+}
+
+function enviarRecuperacionPassword(string $correo, string $nombre, string $url): bool {
+    if (!MAIL_ENABLED) {
+        error_log('[enviarRecuperacionPassword] El correo está desactivado; configura MAIL_ENABLED y las credenciales SMTP.');
+        return false;
+    }
+    if (!class_exists(PHPMailer::class)) {
+        error_log('[enviarRecuperacionPassword] PHPMailer no está instalado; ejecuta composer install.');
+        return false;
+    }
+
+    try {
+        $m = new PHPMailer(true);
+        configurarMailer($m, MAIL_FROM_NAME);
+        $m->addAddress($correo, $nombre);
+        $m->isHTML(true);
+        $m->Subject = 'Restablece tu contraseña - ' . MAIL_FROM_NAME;
+        $m->Body = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#111827">'
+            . '<h2>Restablece tu contraseña</h2><p>Hola ' . h($nombre) . ', recibimos una solicitud para cambiar la contraseña de tu cuenta.</p>'
+            . '<p><a href="' . h($url) . '" style="display:inline-block;padding:12px 18px;background:#1f4e79;color:#fff;text-decoration:none;border-radius:6px">Crear nueva contraseña</a></p>'
+            . '<p>El enlace vence en 60 minutos y solo puede usarse una vez. Si no solicitaste este cambio, ignora este mensaje.</p>'
+            . '<p>Si el botón no funciona, copia este enlace en tu navegador:<br>' . h($url) . '</p></div>';
+        $m->AltBody = "Hola $nombre. Restablece tu contraseña en: $url. El enlace vence en 60 minutos y solo puede usarse una vez.";
+        return $m->send();
+    } catch (Throwable $e) {
+        error_log('[enviarRecuperacionPassword] ' . $e->getMessage());
+        return false;
+    }
+}
 
 /**
  * Envía al correo registrado del cliente el estado actual del pedido.
@@ -63,16 +105,7 @@ function notificarPedido(int $idPedido): bool {
               . '<div style="background:#f9fafb;padding:12px 24px;font-size:12px;color:#6b7280">' . h($tienda) . '</div></div>';
 
         $m = new PHPMailer(true);
-        $m->isSMTP();
-        $m->Host       = MAIL_HOST;
-        $m->SMTPAuth   = true;
-        $m->Username   = MAIL_USER;
-        $m->Password   = MAIL_PASS;
-        $m->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $m->Port       = MAIL_PORT;
-        $m->Timeout    = 10;                       // no dejar colgada la tienda si el SMTP no responde
-        $m->CharSet    = 'UTF-8';
-        $m->setFrom(MAIL_FROM, $tienda);
+        configurarMailer($m, $tienda);
         $m->addAddress($p['correo'], $p['nombre'] . '');
         $m->isHTML(true);
         $m->Subject = "$titulo - Pedido #{$p['id_pedido']}";

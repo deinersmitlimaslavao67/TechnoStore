@@ -295,7 +295,7 @@
               if (digital && r.comprobante) {
                 saldo = +r.saldo;
                 paintSaldo();
-                notice('¡Pago realizado!', `<p>Pagaste <b>${money(tot)}</b> con dinero digital. Tu pedido <b>#${r.id_pedido}</b> quedó en estado <b>PAGADO</b>.</p><p style="margin-top:.5rem">Comprobante: <b>${esc(r.comprobante)}</b><br>Saldo restante: <b>${money(r.saldo)}</b></p>`,
+                notice('¡Pago realizado!', `<p>Pagaste <b>${money(tot)}</b> con dinero digital. Tu pedido <b>#${r.id_pedido}</b> quedó en estado <b>PAGADO</b>.</p><p style="margin-top:.5rem">Comprobante: <b>${esc(r.comprobante)}</b><br>Saldo restante: <b>${money(r.saldo)}</b></p>${r.correo_enviado ? '' : '<p class="sub" style="margin-top:.5rem">No se pudo enviar la notificación por correo. Revisa la configuración SMTP o los permisos del destinatario.</p>'}`,
                   [
                     ['Ver mis pedidos', 'ghost', () => {
                       close('mInfo');
@@ -308,8 +308,7 @@
                     }]
                   ]);
               } else {
-                notice('¡Pedido confirmado!', `<p>Tu pedido <b>#${r.id_pedido}</b> por <b>${money(tot)}</b> quedó registrado. Puedes seguir su estado en “Mis pedidos”.</p>`);
+                notice('¡Pedido confirmado!', `<p>Tu pedido <b>#${r.id_pedido}</b> por <b>${money(tot)}</b> quedó registrado. Puedes seguir su estado en “Mis pedidos”.</p>${r.correo_enviado ? '' : '<p class="sub" style="margin-top:.5rem">No se pudo enviar la notificación por correo. Revisa la configuración SMTP o los permisos del destinatario.</p>'}`);
               }
               show('orders');
             }
-

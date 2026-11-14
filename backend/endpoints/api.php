@@ -80,8 +80,23 @@ function countryNames(): array
 function migrar(): void
 {
     global $db;
-    if (!empty($_SESSION['mig_ok'])) return;
+    if (!empty($_SESSION['mig_ok']) && !empty($_SESSION['mig_recuperacion_ok'])) return;
     try {
+        if (empty($_SESSION['mig_recuperacion_ok'])) {
+            $db->exec('CREATE TABLE IF NOT EXISTS token_recuperacion (
+                token_hash CHAR(64) PRIMARY KEY,
+                id_usuario INT NOT NULL,
+                creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                expira_en DATETIME NOT NULL,
+                usado_en DATETIME NULL,
+                INDEX idx_token_recuperacion_usuario (id_usuario),
+                CONSTRAINT fk_token_recuperacion_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+                    ON UPDATE CASCADE ON DELETE CASCADE
+            ) ENGINE=InnoDB');
+            $_SESSION['mig_recuperacion_ok'] = 1;
+        }
+        if (!empty($_SESSION['mig_ok'])) return;
+
         $addUsuarioColumn = [
             'pais' => 'ALTER TABLE usuario ADD COLUMN pais VARCHAR(100) NULL AFTER telefono',
             'ciudad' => 'ALTER TABLE usuario ADD COLUMN ciudad VARCHAR(100) NULL AFTER pais',
@@ -272,13 +287,31 @@ try {
                                                          correo_contacto, telefono_contacto
                                                   FROM personalizacion_tienda ORDER BY id_personalizacion DESC LIMIT 1')[0] ?? null]);
         case 'listar_catalogo':
-            out(['data' => q('CALL sp_listar_catalogo()')]);
+            out(['data' => q("SELECT p.id_producto, p.nombre, p.marca, c.nombre AS categoria,
+                                     p.precio, p.stock, p.imagen_url, p.destacado
+                              FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria
+                              WHERE p.activo = TRUE AND c.activa = TRUE
+                              ORDER BY p.destacado DESC, c.nombre, p.nombre")]);
         case 'obtener_vista_catalogo':
-            out(['data' => q('SELECT * FROM v_catalogo_publico ORDER BY categoria, nombre')]);
+            out(['data' => q("SELECT p.id_producto, p.nombre, p.marca, p.descripcion, p.especificaciones,
+                                     p.precio, p.stock, p.imagen_url, p.destacado,
+                                     c.id_categoria, c.nombre AS categoria
+                              FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria
+                              WHERE p.activo = TRUE AND c.activa = TRUE
+                              ORDER BY c.nombre, p.nombre")]);
         case 'obtener_destacados':
-            out(['data' => q('SELECT * FROM v_productos_destacados')]);
+            out(['data' => q("SELECT p.id_producto, p.nombre, p.marca, p.precio, p.imagen_url, c.nombre AS categoria
+                              FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria
+                              WHERE p.activo = TRUE AND c.activa = TRUE AND p.destacado = TRUE
+                              ORDER BY c.nombre, p.nombre")]);
         case 'buscar_productos':
-            out(['data' => q('CALL sp_buscar_productos(?)', [$v('q')])]);
+            $busqueda = '%' . $v('q') . '%';
+            out(['data' => q("SELECT p.id_producto, p.nombre, p.marca, c.nombre AS categoria,
+                                     p.precio, p.stock, p.imagen_url, p.destacado
+                              FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria
+                              WHERE p.activo = TRUE AND c.activa = TRUE
+                                AND (p.nombre LIKE ? OR p.marca LIKE ?)
+                              ORDER BY p.nombre", [$busqueda, $busqueda])]);
         case 'listar_categorias':
             out(['data' => q('CALL sp_listar_categorias()')]);
         case 'obtener_paises':
@@ -298,6 +331,59 @@ try {
             }
             sort($cities, SORT_NATURAL | SORT_FLAG_CASE);
             out(['data' => $cities]);
+
+        case 'solicitar_recuperacion':
+            $correo = $v('correo');
+            if (!filter_var($correo, FILTER_VALIDATE_EMAIL) || mb_strlen($correo) > 120) fail('Correo no válido');
+            $cuenta = q('SELECT id_usuario, nombre FROM usuario WHERE correo = ? AND activo = TRUE', [$correo])[0] ?? null;
+            if ($cuenta && !MAIL_ENABLED) {
+                error_log('[solicitar_recuperacion] MAIL_ENABLED está desactivado; no se pudo enviar el enlace.');
+            } elseif ($cuenta && !class_exists(PHPMailer\PHPMailer\PHPMailer::class)) {
+                error_log('[solicitar_recuperacion] PHPMailer no está instalado; ejecuta composer install.');
+            } elseif ($cuenta) {
+                q('DELETE FROM token_recuperacion
+                   WHERE id_usuario = ? AND (expira_en <= NOW() OR (usado_en IS NOT NULL AND usado_en < DATE_SUB(NOW(), INTERVAL 1 DAY)))',
+                    [(int)$cuenta['id_usuario']]);
+                $recientes = q("SELECT COUNT(*) AS total FROM token_recuperacion
+                                WHERE id_usuario = ? AND creado_en >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)", [(int)$cuenta['id_usuario']])[0]['total'] ?? 0;
+                if ((int)$recientes < 3) {
+                    $token = bin2hex(random_bytes(32));
+                    $hash = hash('sha256', $token);
+                    q('UPDATE token_recuperacion SET usado_en = NOW() WHERE id_usuario = ? AND usado_en IS NULL', [(int)$cuenta['id_usuario']]);
+                    q('INSERT INTO token_recuperacion (token_hash, id_usuario, expira_en) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 60 MINUTE))', [$hash, (int)$cuenta['id_usuario']]);
+
+                    $urlBase = APP_URL;
+                    if ($urlBase === '') {
+                        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                        $host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+                        $port = (int)($_SERVER['SERVER_PORT'] ?? ($scheme === 'https' ? 443 : 80));
+                        $portPart = in_array($port, [80, 443], true) ? '' : ':' . $port;
+                        $path = dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/TechnoStore/backend/endpoints/api.php'));
+                        $urlBase = $scheme . '://' . $host . $portPart . rtrim($path, '/');
+                    }
+                    $url = $urlBase . '/recuperar_contraseña.php?token=' . rawurlencode($token);
+                    if (!enviarRecuperacionPassword($correo, (string)$cuenta['nombre'], $url)) {
+                        q('UPDATE token_recuperacion SET usado_en = NOW() WHERE token_hash = ?', [$hash]);
+                    }
+                }
+            }
+            out(['message' => 'Si el correo está registrado y el servicio de correo está disponible, recibirás instrucciones para restablecer tu contraseña.']);
+
+        case 'restablecer_password':
+            $token = $v('token');
+            $nueva = $v('password');
+            if (!preg_match('/^[a-f0-9]{64}$/i', $token)) fail('El enlace de recuperación no es válido o ya venció');
+            if (strlen($nueva) < 6) fail('La contraseña debe tener al menos 6 caracteres');
+            tx(function () use ($token, $nueva) {
+                $hash = hash('sha256', $token);
+                $registro = q('SELECT t.id_usuario FROM token_recuperacion t
+                               JOIN usuario u ON u.id_usuario = t.id_usuario AND u.activo = TRUE
+                               WHERE t.token_hash = ? AND t.usado_en IS NULL AND t.expira_en > NOW() FOR UPDATE', [$hash])[0] ?? null;
+                if (!$registro) throw new RuntimeException('El enlace de recuperación no es válido o ya venció');
+                q('UPDATE usuario SET contrasena_hash = ? WHERE id_usuario = ?', [password_hash($nueva, PASSWORD_DEFAULT), (int)$registro['id_usuario']]);
+                q('UPDATE token_recuperacion SET usado_en = NOW() WHERE id_usuario = ? AND usado_en IS NULL', [(int)$registro['id_usuario']]);
+            });
+            out(['message' => 'Tu contraseña fue restablecida. Ya puedes iniciar sesión.']);
 
             /* ---------- Sesión ---------- */
             case 'sesion':
@@ -471,8 +557,8 @@ try {
                 $mov = moverSaldo((int)$u['id_usuario'], 'PAGO', $total, (int)$cid);
                 return ['comprobante' => emitirComprobante((int)$cid, (int)$u['id_usuario'], $mov['id'], $total), 'saldo' => $mov['saldo']];
             });
-            notificarPedido((int)$cid);   // correo: pedido recibido
-            out(['id_pedido' => $cid] + $res);
+            $correoEnviado = notificarPedido((int)$cid);   // el correo no revierte la compra si el SMTP falla
+            out(['id_pedido' => $cid, 'correo_enviado' => $correoEnviado] + $res);
         case 'cancelar_pedido':   // solo pedidos PENDIENTE del propio usuario; devuelve el stock
             $u = needLogin();
             $id = (int)$v('id_pedido');
@@ -483,8 +569,8 @@ try {
                 q('UPDATE producto p JOIN detalle_pedido d ON d.id_producto = p.id_producto SET p.stock = p.stock + d.cantidad WHERE d.id_pedido = ?', [$id]);
                 q("UPDATE pedido SET estado = 'CANCELADO' WHERE id_pedido = ?", [$id]);
             });
-            notificarPedido($id);   // correo: pedido cancelado
-            out();
+            $correoEnviado = notificarPedido($id);
+            out(['correo_enviado' => $correoEnviado]);
 
             /* ---------- Administrador ---------- */
         case 'admin_productos':
@@ -567,8 +653,8 @@ try {
                 }
                 q('UPDATE pedido SET estado = ? WHERE id_pedido = ?', [$nuevo, $id]);
             });
-            notificarPedido($id);   // correo: avisa al cliente del nuevo estado
-            out();
+            $correoEnviado = notificarPedido($id);
+            out(['correo_enviado' => $correoEnviado]);
 
             /* ----- Personalización de la tienda ----- */
         case 'tienda_admin':
@@ -601,30 +687,30 @@ try {
         case 'cambiar_rol':
             $u = needAdmin();
             if ((int)$v('id_usuario') === (int)$u['id_usuario']) fail('No puedes cambiar tu propio rol');
+            $objetivo = q('SELECT rol FROM usuario WHERE id_usuario = ? AND activo = TRUE', [(int)$v('id_usuario')])[0] ?? null;
+            if (!$objetivo) fail('Usuario no encontrado', 404);
+            if ($objetivo['rol'] !== 'CLIENTE') fail('No puedes cambiar el rol de otro administrador', 403);
             q('CALL sp_cambiar_rol(?,?)', [(int)$v('id_usuario'), $v('rol')]);
             out();
         case 'eliminar_usuario':
             $u = needAdmin();
             if ((int)$v('id_usuario') === (int)$u['id_usuario']) fail('No puedes eliminar tu propia cuenta');
+            $objetivo = q('SELECT rol FROM usuario WHERE id_usuario = ? AND activo = TRUE', [(int)$v('id_usuario')])[0] ?? null;
+            if (!$objetivo) fail('Usuario no encontrado', 404);
+            if ($objetivo['rol'] !== 'CLIENTE') fail('No puedes eliminar otra cuenta de administrador', 403);
             q('CALL sp_eliminar_usuario(?)', [(int)$v('id_usuario')]);
             out();
 
             /* ---------- Usuarios: edición por el administrador ---------- */
         case 'admin_actualizar_usuario':
-            $adm = needAdmin();
+            needAdmin();
             $uid = (int)$v('id_usuario');
             [$n, $ap, $t, $pais, $ciudad, $barrio, $d] = datosPerfil();
-            if (!filter_var($v('correo'), FILTER_VALIDATE_EMAIL) || mb_strlen($v('correo')) > 120) fail('Correo no válido');
-            $pw = $v('password');
-            if ($pw !== '' && strlen($pw) < 6) fail('La contraseña debe tener al menos 6 caracteres');
-            if (!q('SELECT 1 FROM usuario WHERE id_usuario = ? AND activo = TRUE', [$uid])) fail('Usuario no encontrado', 404);
-            q('UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $v('correo'), $t, $pais, $ciudad, $barrio, $d, $uid]);
-            if ($pw !== '') q('UPDATE usuario SET contrasena_hash = ? WHERE id_usuario = ?', [password_hash($pw, PASSWORD_DEFAULT), $uid]);
-            if ($uid === (int)$adm['id_usuario']) {
-                $_SESSION['user']['nombre'] = $n;
-                $_SESSION['user']['apellido'] = $ap;
-                $_SESSION['user']['correo'] = $v('correo');
-            }
+            $objetivo = q('SELECT rol FROM usuario WHERE id_usuario = ? AND activo = TRUE', [$uid])[0] ?? null;
+            if (!$objetivo) fail('Usuario no encontrado', 404);
+            if ($objetivo['rol'] !== 'CLIENTE') fail('La información de las cuentas administradoras solo puede cambiarla su titular', 403);
+            if ($uid === (int)me()['id_usuario']) fail('No puedes editar tu cuenta desde la administración; usa Mi perfil', 403);
+            q('UPDATE usuario SET nombre = ?, apellido = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $t, $pais, $ciudad, $barrio, $d, $uid]);
             out();
 
             /* ---------- Mi perfil (cliente o administrador sobre su propia cuenta) ---------- */
@@ -704,7 +790,12 @@ try {
 
             /* ---------- Público: detalle de un producto ---------- */
         case 'detalle_producto':
-            $r = q('SELECT * FROM v_catalogo_publico WHERE id_producto = ?', [(int)$v('id_producto')])[0] ?? null;
+            $r = q("SELECT p.id_producto, p.nombre, p.marca, p.descripcion, p.especificaciones,
+                            p.precio, p.stock, p.imagen_url, p.destacado,
+                            c.id_categoria, c.nombre AS categoria
+                     FROM producto p JOIN categoria c ON c.id_categoria = p.id_categoria
+                     WHERE p.id_producto = ? AND p.activo = TRUE AND c.activa = TRUE",
+                    [(int)$v('id_producto')])[0] ?? null;
             $r ? out(['data' => $r]) : fail('Este producto ya no está disponible', 404);
 
         default:

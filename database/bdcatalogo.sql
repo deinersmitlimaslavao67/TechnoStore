@@ -20,6 +20,18 @@ CREATE TABLE IF NOT EXISTS usuario (
   activo          BOOLEAN      NOT NULL DEFAULT TRUE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS token_recuperacion (
+  token_hash  CHAR(64) PRIMARY KEY,
+  id_usuario  INT NOT NULL,
+  creado_en   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expira_en   DATETIME NOT NULL,
+  usado_en    DATETIME NULL,
+  INDEX idx_token_recuperacion_usuario (id_usuario),
+  CONSTRAINT fk_token_recuperacion_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- ---------- CATEGORIA ----------
 CREATE TABLE IF NOT EXISTS categoria (
   id_categoria INT AUTO_INCREMENT PRIMARY KEY,
@@ -236,7 +248,7 @@ SELECT p.id_producto, p.nombre, p.marca, p.descripcion, p.especificaciones,
        c.id_categoria, c.nombre AS categoria
 FROM producto p
 JOIN categoria c ON c.id_categoria = p.id_categoria
-WHERE p.activo = TRUE AND c.activa = TRUE AND p.stock > 0;
+WHERE p.activo = TRUE AND c.activa = TRUE;
 
 -- 5.2 Productos destacados
 CREATE OR REPLACE VIEW v_productos_destacados AS
@@ -437,7 +449,7 @@ BEGIN
 END$$
 
 
--- 9. Catálogo público (activos y con stock)
+-- 9. Catálogo público (productos activos, incluso agotados)
 -- CALL sp_listar_catalogo();
 DROP PROCEDURE IF EXISTS sp_listar_catalogo$$
 CREATE PROCEDURE sp_listar_catalogo()
@@ -446,7 +458,7 @@ BEGIN
          p.precio, p.stock, p.imagen_url, p.destacado
   FROM producto p
   JOIN categoria c ON c.id_categoria = p.id_categoria
-  WHERE p.activo = TRUE AND c.activa = TRUE AND p.stock > 0
+  WHERE p.activo = TRUE AND c.activa = TRUE
   ORDER BY p.destacado DESC, c.nombre, p.nombre;
 END$$
 
@@ -461,7 +473,7 @@ BEGIN
   SELECT p.id_producto, p.nombre, p.marca, c.nombre AS categoria, p.precio, p.stock
   FROM producto p
   JOIN categoria c ON c.id_categoria = p.id_categoria
-  WHERE p.activo = TRUE
+  WHERE p.activo = TRUE AND c.activa = TRUE
     AND (p.nombre LIKE CONCAT('%', p_texto, '%')
          OR p.marca LIKE CONCAT('%', p_texto, '%'))
   ORDER BY p.nombre;
@@ -520,7 +532,7 @@ BEGIN
          p.imagen_url, p.destacado
   FROM producto p
   JOIN categoria c ON c.id_categoria = p.id_categoria
-  WHERE p.activo = TRUE AND c.activa = TRUE AND p.stock > 0
+  WHERE p.activo = TRUE AND c.activa = TRUE
     AND (p.nombre LIKE CONCAT('%', p_texto, '%') OR p.marca LIKE CONCAT('%', p_texto, '%'))
   ORDER BY p.nombre;
 END$$

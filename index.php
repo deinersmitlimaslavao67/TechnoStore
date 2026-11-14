@@ -355,6 +355,7 @@
       <form id="fAuth">
         <div class="fg"><label for="lEmail">Correo electrónico</label><input type="email" id="lEmail" autocomplete="email" required></div>
         <div class="fg"><label for="lPass">Contraseña</label><input type="password" id="lPass" autocomplete="current-password" required></div>
+        <p class="sub"><a href="recuperar_contraseña.php">¿Olvidaste tu contraseña?</a></p>
         <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn">Ingresar</button></div>
       </form>
       <form id="fReg" hidden>
@@ -377,7 +378,7 @@
         </div>
         <div class="fg"><label for="rBarrio">Barrio</label><input id="rBarrio" maxlength="100" autocomplete="address-level3"></div>
 
-        <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
+        <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button> y autorizo el tratamiento de mis datos personales según el aviso de privacidad.</span></label></div>
         <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
         
       </form>
@@ -484,11 +485,8 @@
         <div class="fg"><label for="uNom">Nombre</label><input id="uNom" maxlength="80" required></div>
         <div class="fg"><label for="uApe">Apellido</label><input id="uApe" maxlength="80" required></div>
       </div>
-      <div class="fg"><label for="uMail">Correo electrónico</label><input type="email" id="uMail" maxlength="120" required></div>
-      <div class="row2">
-        <div class="fg"><label for="uTel">Teléfono</label><input id="uTel" maxlength="20"></div>
-        <div class="fg"><label for="uPass">Nueva contraseña (opcional)</label><input type="password" id="uPass" minlength="6" autocomplete="new-password" placeholder="Dejar vacío para no cambiarla"></div>
-      </div>
+      <div class="fg"><label for="uMail">Correo electrónico (solo el titular puede cambiarlo)</label><input type="email" id="uMail" maxlength="120" disabled></div>
+      <div class="fg"><label for="uTel">Teléfono</label><input id="uTel" maxlength="20"></div>
       <div class="row2">
         <div class="fg"><label for="uPais">País</label><input id="uPais" maxlength="100"></div>
         <div class="fg"><label for="uCiudad">Ciudad</label><input id="uCiudad" maxlength="100"></div>
@@ -614,6 +612,7 @@
             <li><b>Derecho de retracto:</b> en compras a distancia puedes retractarte dentro de los 5 días hábiles siguientes a la entrega del producto (artículo 47 de la Ley 1480 de 2011 y normas que lo modifiquen). Escríbenos a <span class="tcContact"></span>.</li>
             <li>El producto debe devolverse en buen estado y con sus accesorios. Los costos de la devolución los asume el consumidor y, si el retracto procede, te devolvemos todo lo pagado sin descuentos ni retenciones.</li>
             <li>Aplican las excepciones que establece la ley.</li>
+            <li>En los casos previstos en el artículo 51 de la Ley 1480 de 2011, puedes solicitar la reversión del pago electrónico a tu entidad financiera y seguir el procedimiento y los plazos legales.</li>
           </ul>
         </div>
       </details>
@@ -624,21 +623,28 @@
         </div>
       </details>
       <details>
-        <summary>9. Tus datos personales</summary>
+        <summary>9. Comercio electrónico y mensajes de datos</summary>
         <div class="tc-b">
-          <p>Tratamos tus datos conforme a la Ley 1581 de 2012 solo para gestionar tu cuenta, tus compras, los envíos y las notificaciones de tus pedidos. No los vendemos. Tienes derecho a conocer, actualizar, rectificar y solicitar la supresión de tus datos escribiendo a <span class="tcContact"></span>. Puedes editarlos en “Mi perfil”.</p>
+          <p>Antes de confirmar, revisa las características, disponibilidad, precio total, medios de pago y condiciones de entrega. Conforme al artículo 50 de la Ley 1480 de 2011, el proveedor debe poner a tu disposición su identidad legal, NIT, domicilio y canales de atención, además de la información exigida para la compra. Conserva el número de pedido y sus notificaciones como constancia de la transacción. La contratación y los mensajes electrónicos se rigen también por la Ley 527 de 1999. Puedes presentar peticiones, quejas o reclamos al contacto de la tienda: <span class="tcContact"></span>.</p>
         </div>
       </details>
       <details>
-        <summary>10. Uso adecuado y propiedad intelectual</summary>
+        <summary>10. Tus datos personales</summary>
+        <div class="tc-b">
+          <p>El responsable tratará los datos para administrar tu cuenta, procesar pagos y pedidos, realizar entregas, atender solicitudes y enviar notificaciones relacionadas con la compra. El tratamiento se rige por la Ley 1581 de 2012, su reglamentación (incluido el Decreto 1074 de 2015) y demás normas aplicables. Puedes conocer, actualizar y rectificar tus datos, solicitar prueba de la autorización, revocarla o pedir la supresión cuando proceda, y presentar consultas o reclamos al contacto de la tienda: <span class="tcContact"></span>. También puedes acudir a la Superintendencia de Industria y Comercio. La información completa del responsable y la política de tratamiento deben estar disponibles en el sitio antes de recolectar datos.</p>
+        </div>
+      </details>
+      <details>
+        <summary>11. Uso adecuado y propiedad intelectual</summary>
         <div class="tc-b">
           <p>No puedes usar la tienda para actividades ilícitas, intentar vulnerar su seguridad ni copiar su contenido. Logos, textos e imágenes pertenecen a la tienda o a sus titulares.</p>
         </div>
       </details>
       <details>
-        <summary>11. Responsabilidad, cambios y ley aplicable</summary>
+        <summary>12. Responsabilidad, cambios y ley aplicable</summary>
         <div class="tc-b">
           <p>No respondemos por fallas de internet, de pasarelas de pago o de transportadoras ajenas a nuestro control, salvo lo que la ley disponga. Estos términos se rigen por las leyes de Colombia. Ante cualquier reclamo puedes acudir también a la Superintendencia de Industria y Comercio.</p>
+          <p>Las normas ISO/IEC e IEEE son estándares técnicos, no leyes por sí mismos. Esta tienda no declara contar con certificación ISO o IEEE por el solo hecho de citar la legislación aplicable.</p>
         </div>
       </details>
       <div class="mf"><button type="button" class="btn ghost" data-close>Cerrar</button><button type="button" class="btn ok" id="tcAccept">Aceptar y continuar</button></div>

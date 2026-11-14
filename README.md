@@ -75,7 +75,9 @@ Antes de iniciar, asegúrate de contar con lo siguiente:
 
 4. **Abrir la tienda:** visita `http://localhost/TechnoStore/`. Si la conexión falla, revisa el log de errores de PHP/Apache y confirma que MySQL está iniciado, que importaste el esquema y que las credenciales corresponden.
 
-El envío de correo está desactivado por defecto y no es necesario para usar la tienda. Para activarlo, configura `MAIL_ENABLED=true`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS` y `MAIL_FROM` en el entorno de Apache; luego instala las dependencias con Composer.
+El envío de correo está desactivado por defecto y no es necesario para usar la tienda. Para activarlo, configura `MAIL_ENABLED=true`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION` (`tls` para el puerto 587 o `ssl` para el 465), `MAIL_USER`, `MAIL_PASS` y `MAIL_FROM` en el entorno de Apache; luego instala las dependencias con Composer. Usa como `MAIL_FROM` una dirección autorizada por el proveedor SMTP. En Google Groups, además, el grupo destinatario debe permitir mensajes del remitente autenticado; el código no puede cambiar las reglas de recepción del grupo. `APP_URL` debe apuntar a la URL pública base de la tienda (por ejemplo, `https://tienda.example`) para que los enlaces de recuperación lleguen al dominio correcto. Si el envío falla, el cambio de estado del pedido se conserva y la interfaz muestra una advertencia.
+
+La tienda incluye referencias a las normas colombianas de comercio electrónico, protección al consumidor y datos personales. Antes de operar públicamente, el responsable debe completar y publicar su identidad legal, NIT, domicilio y política integral de tratamiento de datos, además de verificar los textos con asesoría jurídica. Las normas ISO/IEC e IEEE son estándares técnicos, no leyes ni una certificación automática.
 
 ## 📎 Recursos y anexos
 
