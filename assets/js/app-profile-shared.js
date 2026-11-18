@@ -72,8 +72,10 @@
             /* ---------- Subida de imágenes ---------- */
             async function subirImagen(file, inputId) {
               if (file.size > 2 * 1024 * 1024) return toast('La imagen supera el máximo de 2 MB', true);
+              const destino = inputId === 'tBan' ? 'banner' : 'logo';
               const r = await api('subir_imagen', {
-                archivo: file
+                archivo: file,
+                destino
               }, true);
               if (!r.success) return toast(r.error || 'No se pudo subir la imagen', true);
               const t = $('#' + inputId);

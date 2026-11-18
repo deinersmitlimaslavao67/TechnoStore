@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="logo/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css"><link rel="stylesheet" href="features/feedback/feedback.css"><link rel="stylesheet" href="features/project-resources/resources.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261118-auth-tabs"><link rel="stylesheet" href="features/feedback/feedback.css"><link rel="stylesheet" href="features/project-resources/resources.css">
 </head>
 
 <body>
@@ -283,7 +283,7 @@
           <div class="fg"><label for="tNom">Nombre de la tienda</label><input id="tNom" maxlength="80" required></div>
           <div class="fg"><label for="tDes">Descripción (se muestra en el banner de inicio)</label><textarea id="tDes"></textarea></div>
           <div class="row2">
-            <div class="fg"><label for="tLogo">Logo (ruta, URL o subir archivo)</label><input id="tLogo" maxlength="255" placeholder="img/logo.png">
+            <div class="fg"><label for="tLogo">Logo (ruta, URL o subir archivo)</label><input id="tLogo" maxlength="255" placeholder="logo/logo.png">
               <div class="up"><img alt=""><input type="file" data-target="tLogo" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Subir logo"></div>
             </div>
             <div class="fg"><label for="tBan">Banner (ruta, URL o subir archivo)</label><input id="tBan" maxlength="255" placeholder="img/banner.jpg">
@@ -350,11 +350,12 @@
 
   <!-- MODAL LOGIN / REGISTRO -->
   <div class="modal" id="mAuth">
-    <div class="mc">
+    <div class="mc auth-card">
       <div class="tabs" id="authTabs"><button type="button" class="on" data-a="login">Iniciar sesión</button><button type="button" data-a="reg">Crear cuenta</button></div>
       <form id="fAuth">
         <div class="fg"><label for="lEmail">Correo electrónico</label><input type="email" id="lEmail" autocomplete="email" required></div>
         <div class="fg"><label for="lPass">Contraseña</label><input type="password" id="lPass" autocomplete="current-password" required></div>
+        <p class="auth-help"><button type="button" class="linkbtn" id="forgotLink">¿Olvidaste tu contraseña?</button></p>
         <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn">Ingresar</button></div>
       </form>
       <form id="fReg" hidden>
@@ -380,6 +381,19 @@
         <div class="fg chk terms-row"><label><input type="checkbox" id="rTerms" required><span>Acepto los <button type="button" class="linkbtn" data-terms>términos y condiciones</button></span></label></div>
         <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button class="btn ok">Crear cuenta</button></div>
         
+      </form>
+      <form id="fForgot" hidden>
+        <h3>Recuperar contraseña</h3>
+        <p class="auth-help">Te enviaremos un enlace seguro a tu correo para crear una contraseña nueva.</p>
+        <div class="fg"><label for="forgotEmail">Correo electrónico</label><input type="email" id="forgotEmail" autocomplete="email" required></div>
+        <div class="mf"><button type="button" class="btn ghost" data-auth-back>Volver</button><button type="submit" class="btn">Enviar enlace</button></div>
+      </form>
+      <form id="fReset" hidden>
+        <h3>Nueva contraseña</h3>
+        <p class="auth-help">Elige una contraseña de al menos 6 caracteres.</p>
+        <div class="fg"><label for="resetPass">Nueva contraseña</label><input type="password" id="resetPass" minlength="6" autocomplete="new-password" required></div>
+        <div class="fg"><label for="resetPassConfirm">Confirmar contraseña</label><input type="password" id="resetPassConfirm" minlength="6" autocomplete="new-password" required></div>
+        <div class="mf"><button type="button" class="btn ghost" data-close>Cancelar</button><button type="submit" class="btn ok">Guardar contraseña</button></div>
       </form>
     </div>
   </div>
@@ -484,10 +498,9 @@
         <div class="fg"><label for="uNom">Nombre</label><input id="uNom" maxlength="80" required></div>
         <div class="fg"><label for="uApe">Apellido</label><input id="uApe" maxlength="80" required></div>
       </div>
-      <div class="fg"><label for="uMail">Correo electrónico</label><input type="email" id="uMail" maxlength="120" required></div>
+      <div class="fg"><label for="uMail">Correo electrónico (no editable)</label><input type="email" id="uMail" maxlength="120" disabled></div>
       <div class="row2">
         <div class="fg"><label for="uTel">Teléfono</label><input id="uTel" maxlength="20"></div>
-        <div class="fg"><label for="uPass">Nueva contraseña (opcional)</label><input type="password" id="uPass" minlength="6" autocomplete="new-password" placeholder="Dejar vacío para no cambiarla"></div>
       </div>
       <div class="row2">
         <div class="fg"><label for="uPais">País</label><input id="uPais" maxlength="100"></div>

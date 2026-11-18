@@ -183,7 +183,32 @@
             };
 
             /* ---------- Animaciones al hacer scroll ---------- */
-            document.addEventListener('scroll', () => $('header').classList.toggle('stuck', scrollY > 8), {
+            let lastHeaderScroll = window.scrollY,
+              headerDirection = 0,
+              headerDirectionDistance = 0;
+            document.addEventListener('scroll', () => {
+              const header = $('header'),
+                current = window.scrollY,
+                mobile = matchMedia('(max-width: 860px)').matches,
+                catalogActive = $('#v-catalog').classList.contains('on'),
+                modalOpen = $$('.modal.on').length > 0,
+                delta = current - lastHeaderScroll,
+                direction = Math.sign(delta);
+              header.classList.toggle('stuck', current > 8);
+              if (direction === headerDirection) headerDirectionDistance += Math.abs(delta);
+              else {
+                headerDirection = direction;
+                headerDirectionDistance = Math.abs(delta);
+              }
+              if (!mobile || !catalogActive || modalOpen || current < 40) {
+                header.classList.remove('header-hidden');
+              } else if (headerDirection === 1 && headerDirectionDistance > 8 && current > 100) {
+                header.classList.add('header-hidden');
+              } else if (headerDirection === -1 && headerDirectionDistance > 8) {
+                header.classList.remove('header-hidden');
+              }
+              lastHeaderScroll = current;
+            }, {
               passive: true
             });
             if (!reduceMotion() && 'IntersectionObserver' in window) {

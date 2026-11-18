@@ -26,6 +26,17 @@ CREATE TABLE IF NOT EXISTS usuario (
   CONSTRAINT chk_usuario_saldo CHECK (saldo_digital >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ---------- RESTABLECIMIENTO DE CONTRASEÑA ----------
+CREATE TABLE IF NOT EXISTS restablecimiento_contrasena (
+  token_hash CHAR(64) NOT NULL PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  vence DATETIME NOT NULL,
+  fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_reset_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  INDEX idx_reset_usuario_vence (id_usuario, vence)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------- CATEGORIA ----------
 CREATE TABLE IF NOT EXISTS categoria (
   id_categoria INT AUTO_INCREMENT PRIMARY KEY,

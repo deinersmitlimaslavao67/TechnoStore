@@ -349,7 +349,6 @@
               $('#uCiudad').value = u.ciudad || '';
               $('#uBarrio').value = u.barrio || '';
               $('#uDir').value = u.direccion || '';
-              $('#uPass').value = '';
               open('mUsr');
             }
             $('#fUsr').onsubmit = async e => {
@@ -359,13 +358,11 @@
                 id_usuario: id,
                 nombre: $('#uNom').value.trim(),
                 apellido: $('#uApe').value.trim(),
-                correo: $('#uMail').value.trim(),
                 telefono: $('#uTel').value.trim(),
                 pais: $('#uPais').value.trim(),
                 ciudad: $('#uCiudad').value.trim(),
                 barrio: $('#uBarrio').value.trim(),
-                direccion: $('#uDir').value.trim(),
-                password: $('#uPass').value
+                direccion: $('#uDir').value.trim()
               }, true);
               if (!r.success) return toast(r.error || 'No se pudo guardar', true);
               if (user && +id === +user.id_usuario) {

@@ -88,9 +88,12 @@ El envío de correo está desactivado por defecto y no es necesario para usar la
    SetEnv MAIL_PASS "tu-clave-de-aplicacion"
    SetEnv MAIL_FROM tu-cuenta@gmail.com
    SetEnv MAIL_FROM_NAME TechnoStore
+   SetEnv APP_URL https://tu-dominio.com
    ```
    Para Gmail se requiere una clave de aplicación (con verificación en dos pasos); no uses la contraseña normal de la cuenta. `MAIL_FROM` debe ser una dirección autorizada por el proveedor. No compartas la clave ni la guardes en un archivo versionado. Apache aplica `.htaccess` sin reiniciarse.
 3. Si el envío falla, consulta `C:\xampp\apache\logs\error.log`: el servicio registra allí la causa SMTP sin interrumpir la compra. Verifica también que el servidor pueda salir por el puerto SMTP configurado.
+
+La opción **¿Olvidaste tu contraseña?** envía un enlace a `reset-password.php` con un token de un solo uso que vence en una hora. En producción, configura `APP_URL` con la URL HTTPS pública base de la tienda (por ejemplo, `SetEnv APP_URL https://tudominio.com` en `.htaccess`); si no se define, el sistema intenta inferir el dominio y la ruta de instalación de la solicitud actual. Los administradores pueden actualizar los datos de perfil de los usuarios, pero no sus correos ni contraseñas; cada usuario debe cambiar su contraseña desde la recuperación o desde su propia cuenta.
 
 ## 📎 Recursos y anexos
 
