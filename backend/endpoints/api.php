@@ -567,8 +567,8 @@ try {
                 }
                 q('UPDATE pedido SET estado = ? WHERE id_pedido = ?', [$nuevo, $id]);
             });
-            notificarPedido($id);   // correo: avisa al cliente del nuevo estado
-            out();
+            $correoEnviado = notificarPedido($id);
+            out(['correo_enviado' => $correoEnviado]);
 
             /* ----- Personalización de la tienda ----- */
         case 'tienda_admin':

@@ -30,6 +30,9 @@ config.php
 !backend/config/
 !backend/config/config.php
 
+# Configuración SMTP local de Apache (contiene secretos)
+/.htaccess
+
 # Esquemas iniciales necesarios para desplegar
 !database/
 !features/feedback/schema.sql

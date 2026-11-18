@@ -141,7 +141,10 @@
               if (!r.success) return toast(r.error || 'No se pudo completar la acción', true);
               close('mDel');
               if (tipo === 'pedido_admin') {
-                toast(`Pedido #${id} cancelado; stock devuelto`);
+                toast(r.correo_enviado
+                  ? `Pedido #${id} cancelado; stock devuelto y correo enviado`
+                  : `Pedido #${id} cancelado y stock devuelto, pero no se pudo enviar el correo. Revisa la configuración y el log de Apache.`,
+                  !r.correo_enviado);
                 loadAdminOrders();
                 loadProds();
                 return loadList('listar_catalogo');
@@ -193,4 +196,3 @@
                 b.textContent = txt;
               }
             });
-

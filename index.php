@@ -788,7 +788,7 @@
       }
     }
 
-    /* Cliente API: GET para lecturas, POST (FormData) para escrituras */
+    /* Cliente API: GET lecturas, POST (FormData) para escrituras */
     const API_SILENT = new Set(['obtener_ciudades', 'sesion']); // sin spinner (autocompletado / verificación)
     /* ---------- Overlay de sesión ---------- */
     function fxLoading(txt, sub = 'Un momento por favor…') {

@@ -75,7 +75,22 @@ Antes de iniciar, asegúrate de contar con lo siguiente:
 
 4. **Abrir la tienda:** visita `http://localhost/TechnoStore/`. Si la conexión falla, revisa el log de errores de PHP/Apache y confirma que MySQL está iniciado, que importaste el esquema y que las credenciales corresponden.
 
-El envío de correo está desactivado por defecto y no es necesario para usar la tienda. Para activarlo, configura `MAIL_ENABLED=true`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS` y `MAIL_FROM` en el entorno de Apache; luego instala las dependencias con Composer.
+El envío de correo está desactivado por defecto y no es necesario para usar la tienda. Para activarlo:
+
+1. Instala PHPMailer desde la raíz del proyecto con `composer install` (debe existir `vendor/autoload.php`).
+2. En la raíz del proyecto, crea o edita `.htaccess` (este archivo está excluido de Git) con la configuración SMTP:
+   ```apache
+   SetEnv MAIL_ENABLED true
+   SetEnv MAIL_HOST smtp.gmail.com
+   SetEnv MAIL_PORT 587
+   SetEnv MAIL_ENCRYPTION tls
+   SetEnv MAIL_USER tu-cuenta@gmail.com
+   SetEnv MAIL_PASS "tu-clave-de-aplicacion"
+   SetEnv MAIL_FROM tu-cuenta@gmail.com
+   SetEnv MAIL_FROM_NAME TechnoStore
+   ```
+   Para Gmail se requiere una clave de aplicación (con verificación en dos pasos); no uses la contraseña normal de la cuenta. `MAIL_FROM` debe ser una dirección autorizada por el proveedor. No compartas la clave ni la guardes en un archivo versionado. Apache aplica `.htaccess` sin reiniciarse.
+3. Si el envío falla, consulta `C:\xampp\apache\logs\error.log`: el servicio registra allí la causa SMTP sin interrumpir la compra. Verifica también que el servidor pueda salir por el puerto SMTP configurado.
 
 ## 📎 Recursos y anexos
 

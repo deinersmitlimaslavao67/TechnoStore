@@ -254,7 +254,9 @@
                 id_pedido: id,
                 estado
               }, true);
-              r.success ? toast(`Pedido #${id}: ${estado}`) : toast(r.error, true);
+              if (!r.success) toast(r.error, true);
+              else if (r.correo_enviado) toast(`Pedido #${id}: ${estado}; correo enviado`);
+              else toast(`Pedido #${id}: ${estado}, pero no se pudo enviar el correo. Revisa la configuración y el log de Apache.`, true);
               loadAdminOrders();
             }
             async function adminOrderDetail(id) {
@@ -417,4 +419,3 @@
                 await loadCatsView();
               } else loadUsers();
             }
-
