@@ -2258,19 +2258,80 @@
     }
 
     header {
-      transform-origin: top;
-      transition: transform .24s ease, opacity .24s ease, box-shadow .3s;
-      will-change: transform
+      transition: box-shadow .3s, transform .25s ease
     }
 
     header.stuck {
       box-shadow: 0 10px 28px rgba(0, 0, 0, .4)
     }
 
-    header.scroll-hidden {
-      transform: scaleY(0);
-      opacity: 0;
-      pointer-events: none
+    .auth-card {
+      max-height: none;
+      overflow: visible;
+      scrollbar-width: none
+    }
+
+    .auth-card::-webkit-scrollbar {
+      display: none
+    }
+
+    #authTabs {
+      overflow: hidden
+    }
+
+    .auth-card.auth-long {
+      max-height: calc(100vh - 2rem);
+      max-height: calc(100dvh - 2rem);
+      overflow-y: auto
+    }
+
+    .auth-help {
+      color: var(--mut);
+      font-size: .9rem;
+      margin: -.35rem 0 1rem
+    }
+
+    #mAuth h3 {
+      margin-bottom: .35rem
+    }
+
+    #mAuth .tabs[hidden] {
+      display: none
+    }
+
+    @media(max-width:860px) {
+      header.header-hidden {
+        transform: translateY(-100%);
+        pointer-events: none
+      }
+
+      .bar nav {
+        order: 3;
+        flex: 0 0 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none
+      }
+
+      .bar nav::-webkit-scrollbar {
+        display: none
+      }
+
+      .bar nav button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: .45rem .65rem
+      }
+
+      .bar .hsearch {
+        order: 4
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      header {
+        transition: none
+      }
     }
 
     .foot .linkbtn {

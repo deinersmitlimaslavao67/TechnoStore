@@ -47,7 +47,20 @@ $db = conectar();
 define('MAIL_ENABLED', filter_var(configEnv('MAIL_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN));
 define('MAIL_HOST', configEnv('MAIL_HOST', 'smtp.gmail.com'));
 define('MAIL_PORT', (int)configEnv('MAIL_PORT', '587'));
+define('MAIL_ENCRYPTION', strtolower(configEnv('MAIL_ENCRYPTION', 'tls')));
 define('MAIL_USER', configEnv('MAIL_USER'));
 define('MAIL_PASS', configEnv('MAIL_PASS'));
 define('MAIL_FROM', configEnv('MAIL_FROM', MAIL_USER));
 define('MAIL_FROM_NAME', configEnv('MAIL_FROM_NAME', 'TechnoStore'));
+$appUrl = trim(configEnv('APP_URL'));
+if ($appUrl === '') {
+    $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+    if (!preg_match('/\A[a-z0-9.-]+(?::[0-9]{1,5})?\z/i', $host)) {
+        $host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+    }
+    $https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
+    $scriptPath = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+    $basePath = preg_replace('#/backend/endpoints$#', '', dirname($scriptPath));
+    $appUrl = ($https ? 'https' : 'http') . '://' . $host . ($basePath === '/' ? '' : rtrim($basePath, '/'));
+}
+define('APP_URL', rtrim($appUrl, '/'));

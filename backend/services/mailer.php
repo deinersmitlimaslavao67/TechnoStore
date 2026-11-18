@@ -25,9 +25,20 @@ function cop($n): string { return '$' . number_format((float)$n, 0, ',', '.'); }
  * NUNCA lanza excepciones: si el correo falla, el cambio de estado ya quedó guardado.
  */
 function notificarPedido(int $idPedido): bool {
-    if (!MAIL_ENABLED) return false;
+    if (!MAIL_ENABLED) {
+        error_log('[notificarPedido] Correo desactivado; configura MAIL_ENABLED=true en el entorno de Apache.');
+        return false;
+    }
     if (!class_exists(PHPMailer::class)) {
         error_log('[notificarPedido] PHPMailer no está instalado; ejecuta composer install.');
+        return false;
+    }
+    if (MAIL_HOST === '' || MAIL_PORT < 1 || MAIL_PORT > 65535 || MAIL_USER === '' || MAIL_PASS === '' || MAIL_FROM === '') {
+        error_log('[notificarPedido] Configuración SMTP incompleta o inválida; revisa MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS y MAIL_FROM.');
+        return false;
+    }
+    if (!in_array(MAIL_ENCRYPTION, ['tls', 'ssl'], true)) {
+        error_log('[notificarPedido] MAIL_ENCRYPTION debe ser tls o ssl.');
         return false;
     }
     try {
@@ -68,7 +79,9 @@ function notificarPedido(int $idPedido): bool {
         $m->SMTPAuth   = true;
         $m->Username   = MAIL_USER;
         $m->Password   = MAIL_PASS;
-        $m->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $m->SMTPSecure = MAIL_ENCRYPTION === 'ssl'
+            ? PHPMailer::ENCRYPTION_SMTPS
+            : PHPMailer::ENCRYPTION_STARTTLS;
         $m->Port       = MAIL_PORT;
         $m->Timeout    = 10;                       // no dejar colgada la tienda si el SMTP no responde
         $m->CharSet    = 'UTF-8';
@@ -82,6 +95,55 @@ function notificarPedido(int $idPedido): bool {
         return true;
     } catch (Throwable $e) {
         error_log('[notificarPedido] pedido ' . $idPedido . ': ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Envía un enlace de restablecimiento. El token nunca se almacena ni registra en texto plano.
+ */
+function enviarRestablecimientoContrasena(string $correo, string $nombre, string $url): bool {
+    if (!MAIL_ENABLED || !class_exists(PHPMailer::class)) {
+        error_log('[enviarRestablecimientoContrasena] Correo desactivado o PHPMailer no disponible.');
+        return false;
+    }
+    if (MAIL_HOST === '' || MAIL_PORT < 1 || MAIL_PORT > 65535 || MAIL_USER === '' || MAIL_PASS === '' || MAIL_FROM === '') {
+        error_log('[enviarRestablecimientoContrasena] Configuración SMTP incompleta o inválida.');
+        return false;
+    }
+    if (!in_array(MAIL_ENCRYPTION, ['tls', 'ssl'], true)) {
+        error_log('[enviarRestablecimientoContrasena] MAIL_ENCRYPTION debe ser tls o ssl.');
+        return false;
+    }
+
+    try {
+        $m = new PHPMailer(true);
+        $m->isSMTP();
+        $m->Host = MAIL_HOST;
+        $m->SMTPAuth = true;
+        $m->Username = MAIL_USER;
+        $m->Password = MAIL_PASS;
+        $m->SMTPSecure = MAIL_ENCRYPTION === 'ssl'
+            ? PHPMailer::ENCRYPTION_SMTPS
+            : PHPMailer::ENCRYPTION_STARTTLS;
+        $m->Port = MAIL_PORT;
+        $m->Timeout = 10;
+        $m->CharSet = 'UTF-8';
+        $m->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+        $m->addAddress($correo, $nombre);
+        $m->isHTML(true);
+        $m->Subject = 'Restablece tu contraseña de ' . MAIL_FROM_NAME;
+        $m->Body = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#172033">'
+            . '<h2>Restablece tu contraseña</h2><p>Hola ' . h($nombre) . ',</p>'
+            . '<p>Recibimos una solicitud para cambiar la contraseña de tu cuenta.</p>'
+            . '<p><a href="' . h($url) . '" style="display:inline-block;padding:12px 18px;background:#1f4e79;color:#fff;text-decoration:none;border-radius:6px">Crear nueva contraseña</a></p>'
+            . '<p>El enlace vence en una hora y solo puede utilizarse una vez. Si no solicitaste este cambio, ignora este correo.</p>'
+            . '</div>';
+        $m->AltBody = "Hola $nombre. Restablece tu contraseña en $url. El enlace vence en una hora.";
+        $m->send();
+        return true;
+    } catch (Throwable $e) {
+        error_log('[enviarRestablecimientoContrasena] Error SMTP: ' . $e->getMessage());
         return false;
     }
 }

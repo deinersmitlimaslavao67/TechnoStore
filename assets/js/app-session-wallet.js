@@ -131,8 +131,12 @@
 
     function authTab(t) {
       $$('#authTabs button').forEach(b => b.classList.toggle('on', b.dataset.a === t));
+      $('#authTabs').hidden = t === 'forgot' || t === 'reset';
       $('#fAuth').hidden = t !== 'login';
       $('#fReg').hidden = t !== 'reg';
+      $('#fForgot').hidden = t !== 'forgot';
+      $('#fReset').hidden = t !== 'reset';
+      $('.auth-card').classList.toggle('auth-long', t === 'reg');
     }
 
     function openAuth(t = 'login') {
@@ -142,6 +146,16 @@
     $$('#authTabs button').forEach(b => b.onclick = () => authTab(b.dataset.a));
     $('#navLogin').onclick = () => openAuth('login');
     $('#navReg').onclick = () => openAuth('reg');
+    $('#forgotLink').onclick = () => {
+      $('#forgotEmail').value = $('#lEmail').value.trim();
+      authTab('forgot');
+    };
+    $$('[data-auth-back]').forEach(b => b.onclick = () => authTab('login'));
+
+    const resetToken = new URLSearchParams(location.search).get('reset');
+    if (resetToken) {
+      openAuth('reset');
+    }
 
     $('#navLogout').onclick = async () => {
       await api('logout', {}, true);
@@ -187,6 +201,34 @@
       busy($('#fAuth button:not([data-close])'), doLogin($('#lEmail').value.trim(), $('#lPass').value));
     };
 
+    $('#fForgot').onsubmit = async e => {
+      e.preventDefault();
+      const btn = $('#fForgot button[type="submit"]');
+      const r = await busy(btn, api('forgot_password', {
+        correo: $('#forgotEmail').value.trim()
+      }, true));
+      if (!r.success) return toast(r.error || 'No se pudo solicitar el enlace', true);
+      $('#fForgot').reset();
+      toast(r.message || 'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.');
+      authTab('login');
+    };
+
+    $('#fReset').onsubmit = async e => {
+      e.preventDefault();
+      if ($('#resetPass').value !== $('#resetPassConfirm').value) return toast('Las contraseñas no coinciden', true);
+      const btn = $('#fReset button[type="submit"]');
+      const r = await busy(btn, api('reset_password', {
+        token: resetToken,
+        password: $('#resetPass').value,
+        password_confirmacion: $('#resetPassConfirm').value
+      }, true));
+      if (!r.success) return toast(r.error || 'No se pudo cambiar la contraseña', true);
+      $('#fReset').reset();
+      history.replaceState(null, '', location.pathname + location.hash);
+      authTab('login');
+      toast(r.message || 'Tu contraseña fue actualizada. Ya puedes iniciar sesión.');
+    };
+
     $('#fReg').onsubmit = async e => {
       e.preventDefault();
       if ($('#rPass').value !== $('#rPass2').value) return toast('Las contraseñas no coinciden', true);
@@ -224,4 +266,3 @@
                 openTerms();
               }
             }; // para marcarla hay que leer
-

@@ -80,7 +80,7 @@ function countryNames(): array
 function migrar(): void
 {
     global $db;
-    if (!empty($_SESSION['mig_ok'])) return;
+    if ((int)($_SESSION['mig_version'] ?? 0) >= 2) return;
     try {
         $addUsuarioColumn = [
             'pais' => 'ALTER TABLE usuario ADD COLUMN pais VARCHAR(100) NULL AFTER telefono',
@@ -145,7 +145,15 @@ function migrar(): void
             CONSTRAINT fk_comprobante_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE RESTRICT,
             CONSTRAINT fk_comprobante_transaccion FOREIGN KEY (id_transaccion) REFERENCES transaccion_digital (id_transaccion) ON UPDATE CASCADE ON DELETE RESTRICT,
             UNIQUE KEY uq_comprobante_pedido (id_pedido)) ENGINE=InnoDB');
-        $_SESSION['mig_ok'] = 1;
+        $db->exec('CREATE TABLE IF NOT EXISTS restablecimiento_contrasena (
+            token_hash CHAR(64) NOT NULL PRIMARY KEY,
+            id_usuario INT NOT NULL,
+            vence DATETIME NOT NULL,
+            fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_reset_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE CASCADE,
+            INDEX idx_reset_usuario_vence (id_usuario, vence)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        $_SESSION['mig_version'] = 2;
     } catch (PDOException $e) {
         fail('No se pudo actualizar la base de datos: ' . $e->getMessage(), 500);
     }
@@ -306,6 +314,39 @@ try {
             $_SESSION = [];
             session_destroy();
             out();
+        case 'forgot_password':
+            $correo = $v('correo');
+            if (!filter_var($correo, FILTER_VALIDATE_EMAIL) || mb_strlen($correo) > 120) fail('Correo no válido');
+            if (!MAIL_ENABLED) fail('El servicio de correo no está configurado. Contacta al administrador.', 503);
+            $cuenta = q('SELECT id_usuario, nombre FROM usuario WHERE correo = ? AND activo = TRUE LIMIT 1', [$correo])[0] ?? null;
+            if ($cuenta) {
+                $token = bin2hex(random_bytes(32));
+                $tokenHash = hash('sha256', $token);
+                q('DELETE FROM restablecimiento_contrasena WHERE id_usuario = ?', [(int)$cuenta['id_usuario']]);
+                q('INSERT INTO restablecimiento_contrasena (token_hash, id_usuario, vence) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))', [$tokenHash, (int)$cuenta['id_usuario']]);
+                $url = APP_URL . '/reset-password.php?token=' . rawurlencode($token);
+                if (!enviarRestablecimientoContrasena($correo, $cuenta['nombre'], $url)) {
+                    q('DELETE FROM restablecimiento_contrasena WHERE token_hash = ?', [$tokenHash]);
+                }
+            }
+            out(['message' => 'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.']);
+        case 'reset_password':
+            $token = $v('token');
+            $password = $v('password');
+            if (!preg_match('/^[a-f0-9]{64}$/', $token)) fail('El enlace no es válido o ya venció.');
+            if (strlen($password) < 6) fail('La contraseña debe tener al menos 6 caracteres.');
+            if ($password !== $v('password_confirmacion')) fail('Las contraseñas no coinciden.');
+            $tokenHash = hash('sha256', $token);
+            tx(function () use ($tokenHash, $password) {
+                $fila = q('SELECT r.id_usuario FROM restablecimiento_contrasena r
+                            JOIN usuario u ON u.id_usuario = r.id_usuario AND u.activo = TRUE
+                           WHERE r.token_hash = ? AND r.vence > NOW() FOR UPDATE', [$tokenHash])[0] ?? null;
+                if (!$fila) throw new RuntimeException('El enlace no es válido o ya venció.');
+                $uid = (int)$fila['id_usuario'];
+                q('UPDATE usuario SET contrasena_hash = ? WHERE id_usuario = ? AND activo = TRUE', [password_hash($password, PASSWORD_DEFAULT), $uid]);
+                q('DELETE FROM restablecimiento_contrasena WHERE id_usuario = ?', [$uid]);
+            });
+            out(['message' => 'Tu contraseña fue actualizada. Ya puedes iniciar sesión.']);
         case 'login':
             $r = q('CALL sp_login_usuario(?)', [$v('correo')])[0] ?? null;
             if (!$r) fail('Correo o contraseña incorrectos', 401);
@@ -567,8 +608,8 @@ try {
                 }
                 q('UPDATE pedido SET estado = ? WHERE id_pedido = ?', [$nuevo, $id]);
             });
-            notificarPedido($id);   // correo: avisa al cliente del nuevo estado
-            out();
+            $correoEnviado = notificarPedido($id);
+            out(['correo_enviado' => $correoEnviado]);
 
             /* ----- Personalización de la tienda ----- */
         case 'tienda_admin':
@@ -611,19 +652,14 @@ try {
 
             /* ---------- Usuarios: edición por el administrador ---------- */
         case 'admin_actualizar_usuario':
-            $adm = needAdmin();
+            needAdmin();
             $uid = (int)$v('id_usuario');
             [$n, $ap, $t, $pais, $ciudad, $barrio, $d] = datosPerfil();
-            if (!filter_var($v('correo'), FILTER_VALIDATE_EMAIL) || mb_strlen($v('correo')) > 120) fail('Correo no válido');
-            $pw = $v('password');
-            if ($pw !== '' && strlen($pw) < 6) fail('La contraseña debe tener al menos 6 caracteres');
             if (!q('SELECT 1 FROM usuario WHERE id_usuario = ? AND activo = TRUE', [$uid])) fail('Usuario no encontrado', 404);
-            q('UPDATE usuario SET nombre = ?, apellido = ?, correo = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $v('correo'), $t, $pais, $ciudad, $barrio, $d, $uid]);
-            if ($pw !== '') q('UPDATE usuario SET contrasena_hash = ? WHERE id_usuario = ?', [password_hash($pw, PASSWORD_DEFAULT), $uid]);
-            if ($uid === (int)$adm['id_usuario']) {
+            q('UPDATE usuario SET nombre = ?, apellido = ?, telefono = ?, pais = ?, ciudad = ?, barrio = ?, direccion = ? WHERE id_usuario = ?', [$n, $ap, $t, $pais, $ciudad, $barrio, $d, $uid]);
+            if ($uid === (int)me()['id_usuario']) {
                 $_SESSION['user']['nombre'] = $n;
                 $_SESSION['user']['apellido'] = $ap;
-                $_SESSION['user']['correo'] = $v('correo');
             }
             out();
 
@@ -690,17 +726,19 @@ try {
         case 'subir_imagen':
             needAdmin();
             $f = $_FILES['archivo'] ?? null;
+            $destino = $v('destino', 'logo');
+            if (!in_array($destino, ['logo', 'banner'], true)) fail('Destino de imagen no válido');
             if (!$f || $f['error'] === UPLOAD_ERR_NO_FILE) fail('Elige una imagen');
             if ($f['error'] === UPLOAD_ERR_INI_SIZE || $f['error'] === UPLOAD_ERR_FORM_SIZE || $f['size'] > 2 * 1024 * 1024) fail('La imagen supera el máximo de 2 MB');
             if ($f['error'] !== UPLOAD_ERR_OK) fail('No se pudo subir el archivo');
             $info = @getimagesize($f['tmp_name']);
             $ext = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_GIF => 'gif', IMAGETYPE_WEBP => 'webp'][$info[2] ?? 0] ?? null;
             if (!$ext) fail('Formato no válido: usa JPG, PNG, GIF o WEBP');
-            $dir = __DIR__ . '/img/uploads';
-            if (!is_dir($dir) && !@mkdir($dir, 0755, true)) fail('No se pudo crear la carpeta img/uploads (revisa permisos)', 500);
+            $dir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . $destino;
+            if (!is_dir($dir) && !@mkdir($dir, 0755, true)) fail("No se pudo crear la carpeta $destino (revisa permisos)", 500);
             $nombreArchivo = bin2hex(random_bytes(8)) . '.' . $ext;   // nombre aleatorio y extensión decidida por el servidor
-            if (!move_uploaded_file($f['tmp_name'], "$dir/$nombreArchivo")) fail('No se pudo guardar la imagen (revisa permisos de img/uploads)', 500);
-            out(['ruta' => "img/uploads/$nombreArchivo"]);
+            if (!move_uploaded_file($f['tmp_name'], $dir . DIRECTORY_SEPARATOR . $nombreArchivo)) fail("No se pudo guardar la imagen (revisa permisos de $destino)", 500);
+            out(['ruta' => "$destino/$nombreArchivo"]);
 
             /* ---------- Público: detalle de un producto ---------- */
         case 'detalle_producto':
