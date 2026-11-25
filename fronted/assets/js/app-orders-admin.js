@@ -330,10 +330,11 @@
                 const nom = `<strong>${esc(u.nombre + ' ' + (u.apellido || ''))}</strong>${me ? ' <span class="pill">Tú</span>' : ''}`;
                 if (del) return `<tr><td>${nom}</td><td>${esc(u.correo)}</td><td>${esc(u.telefono || '—')}</td><td><span class="pill">${esc(u.rol)}</span></td>
       <td><button class="btn ok sm" onclick="restaurar('usuario',${+u.id_usuario})">Restaurar</button></td></tr>`;
+                const isClient = u.rol === 'CLIENTE';
                 return `<tr><td>${nom}</td><td>${esc(u.correo)}</td><td>${esc(u.telefono || '—')}</td>
-    <td><select class="stock" style="width:auto" ${me ? 'disabled' : ''} onchange="setRole(${+u.id_usuario},this.value)">
+    <td><select class="stock" style="width:auto" ${me || !isClient ? 'disabled' : ''} onchange="setRole(${+u.id_usuario},this.value)">
       ${['CLIENTE', 'ADMINISTRADOR'].map(x => `<option ${u.rol === x ? 'selected' : ''}>${x}</option>`).join('')}</select></td>
-    <td><div class="acts"><button class="btn ghost sm" onclick="editUser(${+u.id_usuario})">Editar</button>${me ? '' : `<button class="btn bad sm" onclick="askDelete('usuario',${+u.id_usuario},'${esc(u.nombre).replace(/'/g, '&#39;')}')">Eliminar</button>`}</div></td></tr>`;
+    <td><div class="acts">${isClient && !me ? `<button class="btn ghost sm" onclick="editUser(${+u.id_usuario})">Editar datos no sensibles</button><button class="btn bad sm" onclick="askDelete('usuario',${+u.id_usuario},'${esc(u.nombre).replace(/'/g, '&#39;')}')">Eliminar</button>` : '<span class="sub">Cuenta protegida</span>'}</div></td></tr>`;
               }).join('') : `<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:2rem">${del ? 'No hay usuarios eliminados.' : 'No hay usuarios registrados.'}</td></tr>`;
             }
 
@@ -365,11 +366,6 @@
                 direccion: $('#uDir').value.trim()
               }, true);
               if (!r.success) return toast(r.error || 'No se pudo guardar', true);
-              if (user && +id === +user.id_usuario) {
-                user.nombre = $('#uNom').value.trim();
-                user.apellido = $('#uApe').value.trim();
-                localStorage.setItem('currentUser', JSON.stringify(user));
-              }
               close('mUsr');
               toast('Usuario actualizado');
               loadUsers();

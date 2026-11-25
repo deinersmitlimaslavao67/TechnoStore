@@ -156,7 +156,7 @@
                 return loadCart();
               }
               if (tipo === 'pedido') {
-                toast('Pedido cancelado');
+                toast(r.correo_enviado ? 'Pedido cancelado' : 'Pedido cancelado; no se pudo enviar el correo. Revisa SMTP y los permisos del destinatario.', !r.correo_enviado);
                 loadOrders();
                 return loadList('listar_catalogo');
               }
