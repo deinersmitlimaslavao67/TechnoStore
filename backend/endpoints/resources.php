@@ -13,12 +13,12 @@ if ($root === false) {
 }
 
 $categories = [
-    'srs' => 'Anexos/SRS',
-    'mer' => 'Anexos/MER',
-    'pac' => 'PAC',
-    'quality' => 'Herramientas de calidad',
-    'user_manual' => 'Anexos/Manuales/Usuario',
-    'technical_manual' => 'Anexos/Manuales/Tecnico',
+    'srs' => 'docs/Anexos/SRS',
+    'mer' => 'docs/Anexos/MER',
+    'pac' => 'docs/PAC',
+    'quality' => 'docs/Herramientas de calidad',
+    'user_manual' => 'docs/Anexos/Manuales/Usuario',
+    'technical_manual' => 'docs/Anexos/Manuales/Tecnico',
 ];
 $allowedExtensions = [
     'pdf', 'drawio', 'doc', 'docx', 'odt', 'rtf',

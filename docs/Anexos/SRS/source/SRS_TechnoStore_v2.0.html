@@ -68,16 +68,16 @@
   </table>
   <h3>1.4 Referencias y fuentes de requisitos</h3>
   <ul>
-    <li>Interfaz de usuario de <code>index.php</code> y comportamiento JavaScript de <code>assets/js/app.js</code>.</li>
+    <li>Interfaz de usuario de <code>fronted/index.php</code> y comportamiento JavaScript de <code>fronted/assets/js/app.js</code>; <code>index.php</code> en la raíz conserva el punto de entrada web.</li>
     <li>API y operaciones de negocio de <code>backend/endpoints/api.php</code>.</li>
-    <li>Esquema de <code>database/bdcatalogo.sql</code>, migraciones del backend y esquema de reportes de errores.</li>
+    <li>Esquema de <code>backend/database/bdcatalogo.sql</code>, migraciones del backend y esquema de reportes de errores.</li>
     <li>Términos y condiciones publicados en la aplicación.</li>
     <li>Visor de recursos del proyecto y documentación conservada en la carpeta Anexos.</li>
   </ul>
 
   <h2>2. Descripción general</h2>
   <h3>2.1 Contexto y arquitectura</h3>
-  <p>La solución es una aplicación web cliente-servidor. El navegador presenta HTML, CSS y JavaScript clásico; el servidor procesa solicitudes PHP; MySQL/InnoDB mantiene las cuentas, productos y operaciones. La instalación de referencia del repositorio utiliza Apache, PHP y MySQL (por ejemplo, XAMPP).</p>
+  <p>El repositorio organiza la aplicación en las carpetas <code>fronted/</code> (interfaz HTML, CSS y JavaScript), <code>backend/</code> (lógica y persistencia PHP/MySQL) y <code>docs/</code> (documentación y anexos). La instalación de referencia utiliza Apache, PHP y MySQL (por ejemplo, XAMPP).</p>
   <p>La aplicación integra servicios externos para consultar países y sugerir ciudades. Las notificaciones de pedido utilizan SMTP cuando se habilita mediante configuración de entorno. La disponibilidad y las respuestas de esos proveedores no dependen de TechnoStore.</p>
   <h3>2.2 Clases de usuario</h3>
   <table>
@@ -299,12 +299,12 @@
   <table>
     <thead><tr><th>Área de requisitos</th><th>Componentes de referencia</th></tr></thead>
     <tbody>
-      <tr><td>Catálogo, formularios, navegación y administración</td><td><code>index.php</code>, <code>assets/js/app.js</code></td></tr>
-      <tr><td>Sesiones, compras, inventario, permisos, perfil y saldo</td><td><code>backend/endpoints/api.php</code>, <code>database/bdcatalogo.sql</code></td></tr>
-      <tr><td>Conexión, variables de entorno y correo</td><td><code>backend/config/config.php</code> y servicios de backend</td></tr>
-      <tr><td>Reportes de error y sugerencias</td><td><code>features/feedback/endpoint.php</code>, <code>features/feedback/schema.sql</code> y su interfaz</td></tr>
-      <tr><td>Catálogo dinámico de anexos</td><td><code>features/project-resources/</code>, <code>PAC/</code>, <code>Herramientas de calidad/</code> y <code>Anexos/Manuales/</code></td></tr>
-      <tr><td>Modelo de datos</td><td><code>database/bdcatalogo.sql</code>, migraciones de <code>backend/endpoints/api.php</code> y <code>features/feedback/schema.sql</code></td></tr>
+      <tr><td>Catálogo, formularios, navegación y administración</td><td><code>fronted/index.php</code>, <code>fronted/assets/js/app.js</code></td></tr>
+      <tr><td>Sesiones, compras, inventario, permisos, perfil y saldo</td><td><code>backend/endpoints/api.php</code>, <code>backend/database/bdcatalogo.sql</code></td></tr>
+      <tr><td>Conexión, variables de entorno y correo</td><td><code>backend/config/config.php</code>, <code>backend/services/mailer.php</code></td></tr>
+      <tr><td>Reportes de error y sugerencias</td><td><code>backend/endpoints/feedback.php</code>, <code>backend/database/feedback_schema.sql</code> y su interfaz en <code>fronted/features/feedback/</code></td></tr>
+      <tr><td>Catálogo dinámico de anexos</td><td><code>backend/endpoints/resources.php</code>, <code>fronted/features/project-resources/</code>, <code>docs/PAC/</code>, <code>docs/Herramientas de calidad/</code> y <code>docs/Anexos/Manuales/</code></td></tr>
+      <tr><td>Modelo de datos</td><td><code>backend/database/bdcatalogo.sql</code>, migraciones de <code>backend/endpoints/api.php</code> y <code>backend/database/feedback_schema.sql</code></td></tr>
     </tbody>
   </table>
 

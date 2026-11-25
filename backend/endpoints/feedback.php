@@ -14,7 +14,7 @@ if (!is_array($user) || empty($user['id_usuario'])) {
     feedbackResponse(['success' => false, 'error' => 'Debes iniciar sesión para usar los reportes.'], 401);
 }
 
-require_once __DIR__ . '/../../backend/config/config.php';
+require_once __DIR__ . '/../config/config.php';
 if (!($db instanceof PDO)) {
     feedbackResponse(['success' => false, 'error' => 'No se pudo conectar con la base de datos.'], 500);
 }
@@ -29,7 +29,7 @@ function feedbackEnsureSchema(PDO $db): void
     );
     $exists->execute(['feedback_reportes']);
     if (!$exists->fetchColumn()) {
-        $schemaPath = __DIR__ . '/schema.sql';
+        $schemaPath = __DIR__ . '/../database/feedback_schema.sql';
         if (!is_file($schemaPath)) throw new RuntimeException('No se encontró el esquema de reportes.');
         $schema = file_get_contents($schemaPath);
         if ($schema === false || $db->exec($schema) === false) {

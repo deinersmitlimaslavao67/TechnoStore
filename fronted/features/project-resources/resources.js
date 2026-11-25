@@ -35,9 +35,9 @@
       <div class="resources-content">
         ${categories.map((category, index) => category.id === 'video' ? `
           <section class="resources-pane ${index === 0 ? 'on' : ''}" role="tabpanel" data-pane="${category.id}" ${index ? 'hidden' : ''}>
-            <div class="resources-actions"><strong>${category.title}</strong><a href="videoo/video.mp4" target="_blank" rel="noopener">Abrir video en otra pestaña</a></div>
+            <div class="resources-actions"><strong>${category.title}</strong><a href="docs/videoo/video.mp4" target="_blank" rel="noopener">Abrir video en otra pestaña</a></div>
             <video class="resources-video" controls preload="none" playsinline>
-              <source src="videoo/video.mp4" type="video/mp4">
+              <source src="docs/videoo/video.mp4" type="video/mp4">
               Tu navegador no puede reproducir este video.
             </video>
           </section>` : `
@@ -87,7 +87,7 @@
     });
 
     try {
-      const response = await fetch('features/project-resources/catalog.php', {
+      const response = await fetch('backend/endpoints/resources.php', {
         credentials: 'same-origin',
         cache: 'no-store'
       });

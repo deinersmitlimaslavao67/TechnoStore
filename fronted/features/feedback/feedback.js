@@ -1,5 +1,5 @@
 (() => {
-  const endpoint = 'features/feedback/endpoint.php';
+  const endpoint = 'backend/endpoints/feedback.php';
   const navLogin = document.getElementById('navLogin');
   const navLogout = document.getElementById('navLogout');
   const navAdmin = document.getElementById('navAdmin');

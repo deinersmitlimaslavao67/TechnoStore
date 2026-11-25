@@ -30,22 +30,12 @@
 
 ## 📂 Estructura del Repositorio
 
-La arquitectura del proyecto se organiza de la siguiente manera:
+El proyecto se organiza en tres carpetas principales. Los puntos de entrada `index.php` y `reset-password.php` se mantienen en la raíz para conservar las URL actuales de XAMPP.
 
-* **`index.php`**: Punto de entrada principal y vista de usuario; carga los scripts y estilos organizados en sus carpetas.
-* **`assets/css/styles.css`**: Estilos de la tienda, separados de la vista.
-* **`backend/endpoints/`**: Endpoints de la API y generación de reportes.
-* **`backend/config/`**: Configuración de la conexión a la base de datos.
-* **`backend/services/`**: Servicio de notificaciones por correo.
-* **`backend/libraries/`**: Generador de archivos Excel.
-* **`features/feedback/`**: Reportes autenticados de errores y sugerencias, captura de errores JavaScript, endpoint, estilos y esquema de almacenamiento. Los administradores pueden revisar y actualizar el estado de los reportes. La tabla se crea automáticamente al usar la función por primera vez; se aceptan hasta 20 reportes por usuario cada 10 minutos.
-* **`features/project-resources/`**: Visor web del video, documentos SRS, diagrama MER, PAC, herramientas de calidad y manuales. Las categorías se mantienen visibles aunque estén vacías; los archivos compatibles se detectan automáticamente en sus carpetas.
-* **`database/bdcatalogo.sql`**: Esquema de base de datos y datos iniciales.
-* **`banner/`** y **`logo/`**: Recursos gráficos de la tienda.
-* **`Anexos/`**: Documentación del proyecto. Se conserva el SRS original en `Anexos/SRS/SRS_TechnoStore.pdf` y la edición 2.0 se publica en `Anexos/SRS/SRS_TechnoStore_v2.0.pdf`. El modelo de datos implementado está en `Anexos/MER/MER OFICIAL.drawio`.
-* **`PAC/`**: Carpeta para los documentos del plan de aseguramiento de calidad.
-* **`Herramientas de calidad/`**: Carpeta para los documentos de las herramientas de calidad aplicadas.
-* **`Anexos/Manuales/Usuario/`** y **`Anexos/Manuales/Tecnico/`**: Carpetas para agregar el manual de usuario y el manual técnico.
+* **`backend/`**: Endpoints PHP, servicios, configuración y scripts SQL.
+* **`fronted/`**: Interfaz web, hojas de estilo, JavaScript y recursos de frontend.
+* **`docs/`**: Anexos, evaluaciones, documentos de calidad y video del proyecto. El SRS está en `docs/Anexos/SRS/` y el modelo entidad-relación en `docs/Anexos/MER/`.
+* **`logo/`** y **`banner/`**: Recursos públicos existentes que se mantienen en sus rutas para conservar las URL de imágenes ya guardadas en la base de datos.
 * **`vendor/`**: Dependencias externas gestionadas mediante Composer (incluyendo PHPMailer).
 
 ---
@@ -69,7 +59,7 @@ Antes de iniciar, asegúrate de contar con lo siguiente:
    composer install
    ```
 
-2. **Crear la base de datos:** inicia Apache y MySQL en XAMPP, abre `http://localhost/phpmyadmin` e importa `database/bdcatalogo.sql`. El script crea la base `catalogo_ecommerce` y las tablas, vistas, procedimientos y datos de ejemplo.
+2. **Crear la base de datos:** inicia Apache y MySQL en XAMPP, abre `http://localhost/phpmyadmin` e importa `backend/database/bdcatalogo.sql`. El script crea la base `catalogo_ecommerce` y las tablas, vistas, procedimientos y datos de ejemplo.
 
 3. **Configurar la conexión:** por defecto se usan `127.0.0.1:3306`, la base `catalogo_ecommerce`, el usuario `root` y contraseña vacía (valores estándar de XAMPP). Si tu MySQL usa otros valores, configura en el entorno de Apache `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASS`. La contraseña no debe guardarse en Git.
 
@@ -99,11 +89,11 @@ La opción **¿Olvidaste tu contraseña?** envía un enlace a `reset-password.ph
 
 El botón **Ver anexos y video** del pie de página consulta el catálogo del servidor cada vez que se abre. Para agregar documentos, copia un archivo directamente en la carpeta de su categoría:
 
-* SRS: `Anexos/SRS/`.
-* Modelo entidad-relación: `Anexos/MER/`.
-* PAC: `PAC/`.
-* Herramientas de calidad: `Herramientas de calidad/`.
-* Manual de usuario: `Anexos/Manuales/Usuario/`.
-* Manual técnico: `Anexos/Manuales/Tecnico/`.
+* SRS: `docs/Anexos/SRS/`.
+* Modelo entidad-relación: `docs/Anexos/MER/`.
+* PAC: `docs/PAC/`.
+* Herramientas de calidad: `docs/Herramientas de calidad/`.
+* Manual de usuario: `docs/Anexos/Manuales/Usuario/`.
+* Manual técnico: `docs/Anexos/Manuales/Tecnico/`.
 
 Se listan archivos PDF, Draw.io, documentos de Office/OpenDocument, hojas de cálculo, presentaciones, CSV e imágenes JPG, PNG, GIF y WEBP. Los PDF e imágenes tienen vista previa; los diagramas Draw.io se muestran de forma interactiva y los otros tipos se ofrecen como enlace. No se publica el script de base de datos en el visor.
