@@ -1,0 +1,29 @@
+# Control de versiones y editores
+.git
+.gitignore
+.gitkeep
+*.swp
+.vscode
+.idea
+
+# Secretos y configuraciones locales (PROHIBIDO en la imagen)
+.env
+.env.*
+
+# Dependencias locales (se instalan limpias en la etapa de build)
+vendor/
+node_modules/
+
+# Documentación, multimedia de entrega y respaldos pesados (ahorra >22 MB)
+docs/
+*.mp4
+*.pdf
+*.docx
+*.drawio
+*.md
+*.zip
+*.patch
+
+# Scripts de base de datos (van en la semana 3 con el contenedor MySQL)
+backend/database/
+*.sql
